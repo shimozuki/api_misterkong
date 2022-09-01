@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use App\Models\Misterkong;
+use Illuminate\Support\Str;
+
 
 class AuthController extends Controller
 {
@@ -37,17 +39,16 @@ class AuthController extends Controller
                 'msg' => 'Email atau Password salah'
             ]);
         }else {
-            $token = $user->createToken('token')->plainTextToken;
-            $insert = DB::table('misterkong_log_webview.l_webview_mp')->insert([
-                'imei' => $imei,
-                'token' => $token,
-                'user_id' => $user['id'],
-				'nama' => $user['nama'],
-				'toko' => '-',
-				'jenis_user' => $user['jenis_user'],
-				'email' => $user['email'],
-				'login_stats' => 1,
-            ]);
+            $token = hash('sha256', $plainTextToken = Str::random(40));
+            $array = ['imei' => $imei, 'token' => $token,
+                'user_id' => $user->id,
+                'nama' => $user->nama,
+                'toko' => '-',
+                'jenis_user' => $user->jenis_user,
+                'email' => $user->email,
+                'login_stats' => 1,
+            ];
+            $insert = DB::table('misterkong_log_webview.l_webview_mp')->updateOrInsert(['imei' => $imei], $array);
             return response()->json([
                 'message'   => 'success',
                 'user'      => $user,
@@ -67,17 +68,16 @@ class AuthController extends Controller
                 'msg' => 'nomor hp atau Password salah'
             ]);
         }else {
-            $token = $user->createToken('token')->plainTextToken;
-            $insert = DB::table('misterkong_log_webview.l_webview_mp')->insert([
-                'imei' => $imei,
-                'token' => $token,
+            $token = hash('sha256', $plainTextToken = Str::random(40));
+            $array = ['imei' => $imei, 'token' => $token,
                 'user_id' => $user->id,
-				'nama' => $user->nama,
-				'toko' => '-',
-				'jenis_user' => $user->jenis_user,
-				'email' => $user->email,
-				'login_stats' => 1,
-            ]);
+                'nama' => $user->nama,
+                'toko' => '-',
+                'jenis_user' => $user->jenis_user,
+                'email' => $user->email,
+                'login_stats' => 1,
+            ];
+            $insert = DB::table('misterkong_log_webview.l_webview_mp')->updateOrInsert(['imei' => $imei], $array);
             return response()->json([
                 'message'   => 'success',
                 'user'      => $user,
