@@ -99,15 +99,15 @@ class AuthController extends Controller
                 'message'   => 'token kosong'
             ], 404);
         } else {
-            $array = [$offset, $lng, $lat];
+            $array = ([$offset, $lat, $lng]);
+            // DB::enableQueryLog();
             $restos = DB::select('call p_get_toko_terdekat(?,?,?)', $array);
+            // dd(\DB::getQueryLog());
             return response()->json([
                 'message'   => 'success',
                 'data'      => $restos
             ], 200);
         }
-        
-
     }
     public function logout(Request $request)
     {
