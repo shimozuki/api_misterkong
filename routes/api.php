@@ -37,5 +37,5 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/terdekat', [AuthController::class, 'terdekat']);
 Route::post('/terlaris', [AuthController::class, 'terlaris']);
 Route::post('/terbaru', [AuthController::class, 'terbaru']);
-
+Route::post('/favorite', [AuthController::class, 'favorite']);
 
