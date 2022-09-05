@@ -226,6 +226,12 @@ class AuthController extends Controller
                 }
             }  
     }
+    public function fav()
+    {
+        $token = $request->token;
+        $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
+        $id = $user->user_id;
+    }
     public function favorite(Request $request)
     {
         $token = $request->token;
@@ -237,19 +243,15 @@ class AuthController extends Controller
                 'msg'   => 'token kosong'
             ], 404);
         }else {
-            // $user_fav = DB::table('t_favorite_food')->join('m_user_company', 'm_user_company.id', '=', 't_favorite_food.kd_toko')
-            // ->join('m_kategori_usaha', 'm_user_company.kategori_usaha', '=', 'm_kategori_usaha.kd_kategori_usaha')
-            // ->select('m_user_company.id, m_user_company.nama_usaha, m_user_company.company_id, m_kategori_usaha.nama')->where('t_favorite_food.kd_user', $id)->groupBy('t_favorite_food.kd_toko')->get();
-
             $query = "select m_user_company.id, m_user_company.nama_usaha, 
             m_user_company.company_id, m_kategori_usaha.nama 
             from t_favorite_food inner join m_user_company on m_user_company.id = t_favorite_food.kd_toko
              inner join m_kategori_usaha on m_user_company.kategori_usaha = m_kategori_usaha.kd_kategori_usaha 
-             where t_favorite_food.kd_user = 58 group by t_favorite_food.kd_toko";
-             $user_fav = DB::select(DB::raw($query));
+             where t_favorite_food.kd_user = $id group by t_favorite_food.kd_toko";
+            $user_fav = DB::select(DB::raw($query));
             if (empty($user_fav)) {
                 return response()->json([
-                    'msg'   => 'error',
+                    'msg'   => 'data kosong',
                     'data'      => []
                 ], 200);
             } else {
