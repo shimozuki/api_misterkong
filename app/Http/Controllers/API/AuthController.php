@@ -50,7 +50,7 @@ class AuthController extends Controller
             ];
             $insert = DB::table('misterkong_log_webview.l_webview_mp')->updateOrInsert(['imei' => $imei], $array);
             return response()->json([
-                'message'   => 'success',
+                'msg'   => 'success',
                 'user'      => $user,
                 'token'      => $token,
             ], 200);
@@ -79,7 +79,7 @@ class AuthController extends Controller
             ];
             $insert = DB::table('misterkong_log_webview.l_webview_mp')->updateOrInsert(['imei' => $imei], $array);
             return response()->json([
-                'message'   => 'success',
+                'msg'   => 'success',
                 'user'      => $user,
                 'token'      => $token,
             ], 200);
@@ -96,7 +96,7 @@ class AuthController extends Controller
 
         if (empty($user)) {
             return response()->json([
-                'message'   => 'token kosong'
+                'msg'   => 'token kosong'
             ], 404);
         } else {
             $array = ([$offset, $lat, $lng]);
@@ -104,7 +104,7 @@ class AuthController extends Controller
             $restos = DB::select('call p_get_toko_terdekat(?,?,?)', $array);
             // dd(\DB::getQueryLog());
             return response()->json([
-                'message'   => 'success',
+                'msg'   => 'success',
                 'data'      => $restos
             ], 200);
         }
@@ -144,15 +144,71 @@ class AuthController extends Controller
 
         if ($restos > 0) {
             return response()->json([
-                'message'   => 'success',
+                'msg'   => 'success',
                 'data'      => $restos
             ], 200);
         }else {
             return response()->json([
-                'message'   => 'Terjadi Kesalahan',
+                'msg'   => 'Terjadi Kesalahan',
                 'data'      => []
             ], 201);
         }
+    }
+    public function terbaru(Request $request)
+    {
+        $token = $request->token;
+        $offset = $request->offset ?? 0;
+        $lat = $request->lat ?? 0;
+        $lng = $request->lng ?? 0;
+
+        $query = "SELECT nearest.*,status_buka_toko FROM(
+            select id, m_user_company.company_id, nickname_usaha, nama_usaha, (
+                    3959 * acos (
+                      cos ( radians(koordinat_lat) )
+                      * cos( radians( " . $lat . ") )
+                      * cos( radians( " . $lng . ") - radians(koordinat_lng) )
+                      + sin ( radians(koordinat_lat) )
+                      * sin( radians(" . $lat . ") )
+                    )
+                  ) AS distance,
+                  gambar
+                  from 
+                  (
+                    SELECT id, company_id, nickname_usaha, nama_usaha,koordinat_lat,koordinat_lng FROM m_user_company where (kategori_usaha = 2 or kategori_usaha = 7) and status = 1  
+                  )m_user_company 
+                  INNER JOIN 
+          (
+            SELECT company_id,GROUP_CONCAT(nama) AS item,gambar FROM m_barang 
+            INNER JOIN(
+              SELECT barang_id,gambar	FROM m_barang_gambar WHERE gambar <> ''
+            ) gambar
+            ON gambar.barang_id = m_barang.id
+            WHERE `status` = 2
+            GROUP BY company_id
+          )
+          m_barang ON m_barang.company_id=m_user_company.id
+                
+                  HAVING distance < 30
+            ) nearest
+            INNER JOIN v_status_buka_toko ON v_status_buka_toko.id=nearest.id
+            WHERE status_buka_toko = 1
+            order by distance
+            LIMIT 10 OFFSET $offset";
+
+            $restos = DB::select($query);
+
+            if (!empty($restos)) {
+                return response()->json([
+                    'msg'   => 'success',
+                    'data'      => $restos
+                ], 200);
+            } else {
+                return response()->json([
+                    'msg'   => 'Terjadi Kesalahan',
+                    'data'      => []
+                ], 201);
+            }
+            
     }
     public function logout(Request $request)
     {
@@ -160,7 +216,7 @@ class AuthController extends Controller
         $user->currentAccessToken()->delete();
 
         return response()->json([
-                'message'   => 'Berhasil LogOut'
+                'msg'   => 'Berhasil LogOut'
             ], 200);
     }
 }
