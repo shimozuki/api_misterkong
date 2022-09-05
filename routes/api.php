@@ -35,4 +35,5 @@ Route::group(['middleware' => 'auth:sanctum'], function(){
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/terdekat', [AuthController::class, 'terdekat']);
+Route::post('/terlaris', [AuthController::class, 'terlaris']);
 

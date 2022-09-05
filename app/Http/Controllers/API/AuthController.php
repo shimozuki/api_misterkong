@@ -109,6 +109,51 @@ class AuthController extends Controller
             ], 200);
         }
     }
+    public function terlaris(Request $request)
+    {
+        $token = $request->token;
+        $offset = $request->offset ?? 0;
+        $lat = $request->lat ?? 0;
+        $lng = $request->lng ?? 0;
+
+        $query = "SELECT 
+        m_user_company.id, 
+        m_user_company.company_id,
+        nama_usaha, 
+        jml_transaksi,
+        (
+          3959 * ACOS (COS (RADIANS(koordinat_lat))
+          * COS(RADIANS(" . $lat . "))
+          * COS(RADIANS(" . $lng . ") - RADIANS(koordinat_lng))
+          + SIN (RADIANS(koordinat_lat))
+          * SIN(RADIANS(" . $lat . "))
+          )
+        ) AS distance 
+      FROM m_user_company 
+      INNER JOIN 
+        (SELECT COUNT(no_transaksi) AS jml_transaksi, user_id_toko FROM t_penjualan WHERE jenis_transaksi='FOOD' GROUP BY user_id_toko ORDER BY jml_transaksi DESC)
+        t_penjualan ON m_user_company.id = t_penjualan.user_id_toko
+      INNER JOIN 
+        (SELECT company_id FROM m_barang INNER JOIN (SELECT barang_id FROM m_barang_gambar WHERE gambar <> '') gambar ON m_barang.id = gambar.barang_id WHERE `status` = 2 GROUP BY company_id) 
+        barang_gambar ON m_user_company.id = barang_gambar.company_id	 
+      WHERE (kategori_usaha = 2 OR kategori_usaha = 7) and status = 1 
+      HAVING distance < 30
+      LIMIT 10 OFFSET $offset";
+
+        $restos = DB::select(DB::raw($query));
+
+        if ($restos > 0) {
+            return response()->json([
+                'message'   => 'success',
+                'data'      => $restos
+            ], 200);
+        }else {
+            return response()->json([
+                'message'   => 'Terjadi Kesalahan',
+                'data'      => []
+            ], 201);
+        }
+    }
     public function logout(Request $request)
     {
         $user = $request->user();
