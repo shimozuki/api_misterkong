@@ -228,9 +228,16 @@ class AuthController extends Controller
     }
     public function fav()
     {
+        $toko = $request->toko;
         $token = $request->token;
+        $barang = $request->barang;
         $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
         $id = $user->user_id;
+
+        if (!empty($user)) {
+            $array = ['kd_user' => $id, 'kd_toko' => $toko, 'kd_barang_satuan' => $barang];
+            $insert = DB::table('t_favorite_food')->insert($array);
+        }
     }
     public function favorite(Request $request)
     {
@@ -253,13 +260,52 @@ class AuthController extends Controller
                 return response()->json([
                     'msg'   => 'data kosong',
                     'data'      => []
-                ], 200);
+                ], 201);
             } else {
                 return response()->json([
                     'msg'   => 'success',
                     'data'      => $user
                 ], 200);
             }
+        }
+    }
+    public function storeDetail(Request $request)
+    {
+        $id = $request->id;
+        $lat = $request->lat ?? -8.5769951;
+        $long = $request-> long ?? 116.1004894;
+        $token = $request->token;
+        $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
+        if (empty($user)) {
+            return response()->json([
+                'msg'   => 'token kosong'
+            ], 404);
+        }else {
+            $query = "SELECT m_user_company.id as id,m_user_company.company_id, m_user_company.nama_usaha, header, alamat, status_buka_toko, koordinat_lat, koordinat_lng ,(
+                3959 * acos (
+                    cos ( radians(koordinat_lat) )
+                    * cos( radians( " . $lat . ") )
+                    * cos( radians( " . $long . ") - radians(koordinat_lng) )
+                    + sin ( radians(koordinat_lat) )
+                    * sin( radians(" . $lat . ") )
+                )
+            ) AS distance FROM m_user_company
+            INNER JOIN v_status_buka_toko
+            ON v_status_buka_toko.id=m_user_company.id
+            WHERE m_user_company.id=". $id;
+            $action = DB::select(DB::raw($query));
+            if (!empty($action)) {
+                return response()->json([
+                    'msg'   => 'success',
+                    'data'      => $action
+                ], 200);
+            } else {
+                return response()->json([
+                    'msg'   => 'data kosong',
+                    'data'      => []
+                ], 201);
+            }
+            
         }
     }
     public function logout(Request $request)
