@@ -227,7 +227,7 @@ class AuthController extends Controller
                     + sin ( radians(koordinat_lat) )
                     * sin( radians(" . $lat . ") )
                 )
-            ) AS distance FROM m_user_company
+            ) AS distance FROM m_user_company   
             INNER JOIN v_status_buka_toko
             ON v_status_buka_toko.id=m_user_company.id
             WHERE m_user_company.id=". $id;
