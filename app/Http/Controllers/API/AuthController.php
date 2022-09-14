@@ -87,18 +87,12 @@ class AuthController extends Controller
     }
     public function terdekat(Request $request)
     {
-        $token = $request->token;
+        // $token = $request->token;
         $offset = $request->offset ?? 0;
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
 
         $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
-
-        if (empty($user)) {
-            return response()->json([
-                'msg'   => 'token kosong'
-            ], 404);
-        } else {
             $array = ([$offset, $lat, $lng]);
             // DB::enableQueryLog();
             $restos = DB::select('call p_get_toko_terdekat(?,?,?)', $array);
@@ -107,22 +101,12 @@ class AuthController extends Controller
                 'msg'   => 'success',
                 'data'      => $restos
             ], 200);
-        }
     }
     public function terlaris(Request $request)
     {
-        $token = $request->token;
         $offset = $request->offset ?? 0;
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
-
-        $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
-
-        if (empty($user)) {
-            return response()->json([
-                'msg'   => 'token kosong'
-            ], 404);
-        }else {
             $query = "SELECT 
                             m_user_company.id, 
                             m_user_company.company_id,
@@ -160,22 +144,13 @@ class AuthController extends Controller
                         'data'      => []
                     ], 201);
                 }
-        }
     }
     public function terbaru(Request $request)
     {
-        $token = $request->token;
         $offset = $request->offset ?? 0;
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
 
-        $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
-
-        if (empty($user)) {
-            return response()->json([
-                'msg'   => 'token kosong'
-            ], 404);
-        } else {
             $array = ([$lat, $lng, $offset]);
             $query = DB::select('call p_company_baru(?,?,?)', $array);
             if (!empty($query)) {
@@ -189,7 +164,6 @@ class AuthController extends Controller
                         'data'      => []
                     ], 201);
                 }
-            }  
     }
     public function fav()
     {
