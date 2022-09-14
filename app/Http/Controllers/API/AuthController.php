@@ -92,7 +92,6 @@ class AuthController extends Controller
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
 
-        $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
             $array = ([$offset, $lat, $lng]);
             // DB::enableQueryLog();
             $restos = DB::select('call p_get_toko_terdekat(?,?,?)', $array);
