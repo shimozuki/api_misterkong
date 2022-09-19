@@ -118,17 +118,19 @@ class AuthController extends Controller
                             + SIN (RADIANS(koordinat_lat))
                             * SIN(RADIANS(" . $lat . "))
                             )
-                            ) AS distance 
-                        FROM m_user_company 
-                        INNER JOIN 
-                            (SELECT COUNT(no_transaksi) AS jml_transaksi, user_id_toko FROM t_penjualan WHERE jenis_transaksi='FOOD' GROUP BY user_id_toko ORDER BY jml_transaksi DESC)
-                            t_penjualan ON m_user_company.id = t_penjualan.user_id_toko
-                        INNER JOIN 
-                            (SELECT company_id FROM m_barang INNER JOIN (SELECT barang_id FROM m_barang_gambar WHERE gambar <> '') gambar ON m_barang.id = gambar.barang_id WHERE `status` = 2 GROUP BY company_id) 
-                            barang_gambar ON m_user_company.id = barang_gambar.company_id	 
-                        WHERE (kategori_usaha = 2 OR kategori_usaha = 7) and status = 1 
-                        HAVING distance < 30
-                        LIMIT 10 OFFSET $offset";
+                            ) AS distance, gambar,buka,tutup FROM m_user_company 
+                            INNER JOIN 
+                                (SELECT COUNT(no_transaksi) AS jml_transaksi, user_id_toko FROM t_penjualan WHERE jenis_transaksi='FOOD' GROUP BY user_id_toko ORDER BY jml_transaksi DESC)
+                                t_penjualan ON m_user_company.id = t_penjualan.user_id_toko
+                            INNER JOIN 
+                                (SELECT company_id, gambar FROM m_barang INNER JOIN (SELECT barang_id, gambar FROM m_barang_gambar WHERE gambar <> '') gambar ON m_barang.id = gambar.barang_id WHERE `status` = 2 GROUP BY company_id) 
+                                barang_gambar ON m_user_company.id = barang_gambar.company_id	 
+                                                    INNER JOIN (
+                                                        SELECT id,status_buka_toko,buka,tutup FROM v_status_buka_toko WHERE status_buka_toko = 1
+                                                    ) v_status_buka_toko ON v_status_buka_toko.id=m_user_company.id
+                            WHERE (kategori_usaha = 2 OR kategori_usaha = 7) and status = 1 
+                            HAVING distance < 30
+                            LIMIT 10 OFFSET $offset";
 
                 $restos = DB::select(DB::raw($query));
 
@@ -163,6 +165,46 @@ class AuthController extends Controller
                         'data'      => []
                     ], 201);
                 }
+    }
+    public function populer()
+    {
+        $offset = $request->offset ?? 0;
+        $lat = $request->lat ?? -8.5769951;
+        $lng = $request->lng ?? 116.1004894;
+
+        $query = "SELECT m_user_company.alamat, m_user_company.id,m_user_company.nama_usaha,m_user_company.company_id,status_buka_toko,
+		(
+				3959 * acos (
+					cos ( radians(koordinat_lat) )
+					* cos( radians( " . $lat . ") )
+					* cos( radians( " . $lng . ") - radians(koordinat_lng) )
+					+ sin ( radians(koordinat_lat) )
+					* sin( radians(" . $lat . ") )
+				)
+			) AS distance, gambar, buka, tutup
+		FROM m_user_company 
+		INNER JOIN (
+			SELECT m_barang.company_id, m_barang_gambar.gambar FROM m_barang INNER JOIN m_barang_gambar ON m_barang.id=m_barang_gambar.barang_id
+			WHERE gambar<>'' AND `status`= 2 GROUP BY m_barang.company_id
+		) barang ON barang.company_id=m_user_company.id
+		INNER JOIN v_status_buka_toko
+		ON v_status_buka_toko.id=m_user_company.id
+		where kategori_usaha in (2,7) and m_user_company.status = 1
+		GROUP BY id
+		limit 10 OFFSET $offset";
+        $restos = DB::select(DB::raw($query));
+        if ($restos > 0) {
+            return response()->json([
+                'msg'   => 'success',
+                'data'      => $restos
+            ], 200);
+        }else {
+            return response()->json([
+                'msg'   => 'Terjadi Kesalahan',
+                'data'      => []
+            ], 201);
+        }
+
     }
     public function fav()
     {
