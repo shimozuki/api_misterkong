@@ -118,7 +118,7 @@ class AuthController extends Controller
                             + SIN (RADIANS(koordinat_lat))
                             * SIN(RADIANS(" . $lat . "))
                             )
-                            ) AS distance, gambar,buka,tutup FROM m_user_company 
+                            ) AS distance, gambar,buka,tutup, status_buka_toko FROM m_user_company 
                             INNER JOIN 
                                 (SELECT COUNT(no_transaksi) AS jml_transaksi, user_id_toko FROM t_penjualan WHERE jenis_transaksi='FOOD' GROUP BY user_id_toko ORDER BY jml_transaksi DESC)
                                 t_penjualan ON m_user_company.id = t_penjualan.user_id_toko
