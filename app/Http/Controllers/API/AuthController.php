@@ -107,6 +107,7 @@ class AuthController extends Controller
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
             $query = "SELECT 
+                            m_user_company.alamat,
                             m_user_company.id, 
                             m_user_company.company_id,
                             nama_usaha, 
