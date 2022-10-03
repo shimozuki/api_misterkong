@@ -340,34 +340,39 @@ class AuthController extends Controller
         $lng = $request->lng ?? 116.1058106;
         $key = $request->key;
 
-        $query = "SELECT * FROM 
-        (
-          SELECT *, 
-          ROUND(
-            3959 * ACOS(
-              COS(RADIANS(koordinat_lat)) * 
-              COS(RADIANS( $lat)) * 
-              COS(RADIANS( $lng )- 
-              RADIANS( koordinat_lng)) + 
-              SIN(RADIANS(koordinat_lat )) * 
-              SIN(RADIANS( $lat)) 
-            ) 
-          ,2) AS JARAK
-          FROM 
-          m_user_company WHERE kategori_usaha=2 
-        )m_user_company
-        INNER JOIN 
-        (
-          SELECT company_id,GROUP_CONCAT(nama) AS item FROM m_barang 
-                INNER JOIN(
-                    SELECT barang_id,gambar	FROM m_barang_gambar WHERE gambar <> '' 
-                ) gambar
-                ON gambar.barang_id = m_barang.id
-          WHERE `status` =2
-                GROUP BY company_id 
-        )
-        m_barang ON m_barang.company_id=m_user_company.id
-        WHERE m_user_company.nama_usaha LIKE '%$key%' OR item LIKE '%$key%'";
+        $query = "SELECT nearest.*,status_buka_toko,buka,tutup FROM
+        (SELECT m_user_company.*,m_barang.item FROM 
+                (
+                  SELECT *,
+                  ROUND(
+                    3959 * ACOS(
+                      COS(RADIANS(koordinat_lat)) * 
+                      COS(RADIANS($lat)) * 
+                      COS(RADIANS($lng)- 
+                      RADIANS( koordinat_lng)) + 
+                      SIN(RADIANS(koordinat_lat )) * 
+                      SIN(RADIANS($lat)) 
+                    ) 
+                  ,2) AS distance
+                  FROM 
+                  m_user_company WHERE kategori_usaha=2 
+                )m_user_company
+                INNER JOIN 
+                (
+                  SELECT company_id,GROUP_CONCAT(nama) AS item FROM m_barang 
+                        INNER JOIN(
+                            SELECT barang_id,gambar	FROM m_barang_gambar WHERE gambar <> '' 
+                        ) gambar
+                        ON gambar.barang_id = m_barang.id
+                  WHERE `status` =2
+                        GROUP BY company_id 
+                )
+                m_barang ON m_barang.company_id=m_user_company.id
+                WHERE m_user_company.nama_usaha LIKE '%$key%' OR item LIKE '%$$key%'
+                  ) nearest 
+                  INNER JOIN v_status_buka_toko ON v_status_buka_toko.id=nearest.id
+                    WHERE status_buka_toko = 1
+                    order by distance";
 
         $result = DB::select(DB::raw($query));
         if (!empty($result)) {
@@ -383,6 +388,10 @@ class AuthController extends Controller
         }
        
 
+    }
+    public function carimenu()
+    {
+        
     }
     public function logout(Request $request)
     {
