@@ -207,6 +207,20 @@ class AuthController extends Controller
         }
 
     }
+    public function search_menu(Request $request)
+    {
+        $id = $request->id_toko;
+        $query = "select company_id, id, nama from m_kategori where company_id =" . $id . " order by 
+        company_id,
+        id";
+        $row = DB::select(DB::raw($query));
+        if (!empty($row)) {
+            return response()->json([
+                'msg'   => 'success',
+                'data'      => $row
+            ], 200);
+        }
+    }
     public function fav()
     {
         $toko = $request->toko;
@@ -288,6 +302,87 @@ class AuthController extends Controller
             }
             
         }
+    }
+    public function menu(Request $request)
+    {
+        $id = $request->id_toko;
+        $user_id = $request->user_id;
+        $query = "SELECT * FROM
+		(select company_id,id,nama from m_kategori WHERE company_id = ".$id.") kategori
+		INNER JOIN
+		(SELECT kategori_id,COUNT(kategori_id) AS jumlah_item FROM
+		(SELECT id,kategori_id FROM m_barang WHERE company_id = ".$id." AND status=2) barang
+		INNER JOIN
+		(SELECT barang_id FROM m_barang_satuan WHERE company_id =".$id." AND status=1) mbs
+		ON mbs.barang_id=barang.id
+		GROUP BY kategori_id) barang_satuan
+		ON barang_satuan.kategori_id=kategori.id";
+        $row  = DB::select(DB::raw($query));
+
+        if (!empty($row)) {
+            $query_d = "select *, (select COUNT(kd_user) from t_favorite_food where kd_barang_satuan = v_food_list.id AND kd_user = '" . $user_id . "') fav from v_food_list where company_id=" . $id . " order by stok desc limit 30";
+            $result = DB::select(DB::raw($query_d));
+            return response()->json([
+                'msg'   => 'success',
+                'data'      => $result
+            ], 200);
+        }else {
+            return response()->json([
+                'msg'   => 'data kosong',
+                'data'      => []
+            ], 200);
+        }
+
+    }
+    public function cari(Request $request)
+    {
+        $lat = $request->lat ?? -8.59597203;
+        $lng = $request->lng ?? 116.1058106;
+        $key = $request->key;
+
+        $query = "SELECT * FROM 
+        (
+          SELECT *, 
+          ROUND(
+            3959 * ACOS(
+              COS(RADIANS(koordinat_lat)) * 
+              COS(RADIANS( $lat)) * 
+              COS(RADIANS( $lng )- 
+              RADIANS( koordinat_lng)) + 
+              SIN(RADIANS(koordinat_lat )) * 
+              SIN(RADIANS( $lat)) 
+            ) 
+          ,2) AS JARAK
+          FROM 
+          m_user_company WHERE kategori_usaha=2 
+        )m_user_company
+        INNER JOIN 
+        (
+          SELECT company_id,GROUP_CONCAT(nama) AS item FROM m_barang 
+                INNER JOIN(
+                    SELECT barang_id,gambar	FROM m_barang_gambar WHERE gambar <> '' 
+                ) gambar
+                ON gambar.barang_id = m_barang.id
+          WHERE `status` =2
+                GROUP BY company_id 
+        )
+        m_barang ON m_barang.company_id=m_user_company.id
+        WHERE m_user_company.nama_usaha LIKE '%$key%' OR item LIKE '%$key%'";
+
+        $result = DB::select(DB::raw($query));
+        if (!empty($result)) {
+            return response()->json([
+                'msg'   => 'success',
+                'data'      => $result
+            ], 200);
+        }else {
+            return response()->json([
+                'msg'   => 'gagal',
+                'data'      => []
+            ], 200);
+        }
+       
+
     }
     public function logout(Request $request)
     {
