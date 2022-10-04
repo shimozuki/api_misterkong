@@ -324,6 +324,9 @@ class AuthController extends Controller
             $result = DB::select(DB::raw($query_d));
             return response()->json([
                 'msg'   => 'success',
+                'company_id' => $result->company_id,
+			    'nama_usaha' => $result->nama_usaha,
+			    'comp_id_long' => $result->comp_id_long,
                 'data'      => $result
             ], 200);
         }else {
