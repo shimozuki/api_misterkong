@@ -320,7 +320,13 @@ class AuthController extends Controller
         $row  = DB::select(DB::raw($query));
 
         if (!empty($row)) {
-            $query_d = "select nama_usaha, idbrg, barang, keterangan, status_brg, harga_jual, jumlah, satuan, kat, tag, stok, is_promo, gambar, (select COUNT(kd_user) from t_favorite_food where kd_barang_satuan = v_food_list.id AND kd_user = '" . $user_id . "') fav from v_food_list where company_id=" . $id . " order by stok desc limit 30";
+            $query_d = "SELECT a.nama_usaha, a.idbrg, a.barang, a.keterangan, a.status_brg, 
+            a.harga_jual, a.jumlah, a.satuan, a.kat, a.tag, a.stok, a.is_promo, a.gambar, 
+            (select COUNT(kd_user) from t_favorite_food where kd_barang_satuan = a.id AND kd_user = ".$user_id.")
+            fav, b.nama_varian, c.nama, c.harga, c.keterangan, c.no_urut from v_food_list a
+            INNER JOIN m_varian b ON a.company_id = b.company_id
+            INNER JOIN m_varian_details c ON b.id = c.varian_id
+            WHERE a.company_id=".$id." order by stok desc limit 30";
             $result = DB::select(DB::raw($query_d));
             return response()->json([
                 'msg'   => 'success',
