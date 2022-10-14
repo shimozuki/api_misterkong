@@ -167,7 +167,7 @@ class AuthController extends Controller
                     ], 201);
                 }
     }
-    public function populer()
+    public function populer(Request $request)
     {
         $offset = $request->offset ?? 0;
         $lat = $request->lat ?? -8.5769951;
@@ -221,7 +221,7 @@ class AuthController extends Controller
             ], 200);
         }
     }
-    public function fav()
+    public function fav(Request $request)
     {
         $toko = $request->toko;
         $token = $request->token;
