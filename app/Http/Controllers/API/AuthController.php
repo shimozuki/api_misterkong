@@ -396,10 +396,52 @@ class AuthController extends Controller
        
 
     }
-    public function carimenu()
+    public function kongjek(Request $request)
     {
-        
+        // $request = json_decode(file_get_contents('php://input'), true);
+        $lat_resto = $request->lat_resto;
+        $lng_resto = $request->lng_resto;
+        $lat_dets = $request->lat_dest;
+        $lng_dets = $request->lng_dest;
+        $imei = $request->imei;
+        $total = $request->total;
+        $user = DB::table('misterkong_log_webview.l_webview_mp')->select('user_id')->where('imei', $imei)->first();
+        $id_user = $user->user_id;
+		$get_distance = $this->http_request("https://router.project-osrm.org/route/v1/driving/" . $lng_resto. "," . $lat_resto . ";" . $lng_dets . "," . $lat_dets . "?overview=false&alternatives=true&steps=true&hints=;");
+		$respon = json_decode($get_distance, true);
+        $distance = $respon['routes'][0]['distance'];
+
+        $getRiders =  $this->http_request("https://misterkong.com/kajek/services/cari_driver.php?auth=appKeyAuth&restoLat=" . $lat_resto . "&restoLng=" . $lng_resto . "&desLat=" . $lat_dets . "&desLng=" . $lng_dets . "&kd_user=" . $id_user . "&rad=25&distan=" . $distance . "&total=" . $total);
+        $riders = json_decode($getRiders);
+
+        if ($riders == null) {
+            return response()->json([
+                'success' => false,
+            ], 201);
+        }else {
+            return response()->json([
+                "success" => true, 
+                "riders" => $riders, 
+                "distance" => $distance
+            ]);
+        }
     }
+    function http_request($url)
+	{
+		$ch = curl_init();
+
+		curl_setopt($ch, CURLOPT_URL, $url);
+		// return the transfer as a string 
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		// $output contains the output string 
+		$output = curl_exec($ch);
+
+		// tutup curl 
+		curl_close($ch);
+
+		// mengembalikan hasil curl
+		return $output;
+	}
     public function logout(Request $request)
     {
         $user = $request->user();

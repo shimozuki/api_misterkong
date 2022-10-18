@@ -42,3 +42,4 @@ Route::post('/detail', [AuthController::class, 'storeDetail']);
 Route::post('/populer', [AuthController::class, 'populer']);
 Route::post('/menu', [AuthController::class, 'menu']);
 Route::post('/cari', [AuthController::class, 'cari']);
+Route::post('/rider', [AuthController::class, 'kongjek']);
