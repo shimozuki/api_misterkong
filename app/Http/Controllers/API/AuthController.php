@@ -442,6 +442,26 @@ class AuthController extends Controller
 		// mengembalikan hasil curl
 		return $output;
 	}
+    public function info_rider(Request $request)
+    {
+        $id_user = $request->id_rider;
+        $query = DB::table('m_driver_kendaraan')->select('m_driver_kendaraan.nomor_plat', 'm_driver.nama_depan', 'm_merk_kendaraan.merk_nama', 'm_driver_kendaraan.STNK_expired', 'm_model_kendaraan.model_nama', 'm_driver.sim_exp')
+                    ->join('m_driver', 'm_driver_kendaraan.kd_driver', '=', 'm_driver.kd_driver')
+                    ->join('m_merk_kendaraan', 'm_driver_kendaraan.kd_merk', '=', 'm_merk_kendaraan.merk_id')
+                    ->join('m_model_kendaraan', 'm_driver_kendaraan.kd_model', '=', 'm_model_kendaraan.model_id')
+                    ->where('m_driver_kendaraan.status', '2')->where('m_driver.kd_driver', $id_user)->first();
+        if (!empty($query)) {
+            return response()->json([
+                'success' => true,
+                'data'   => $query
+            ], 200);
+        }else {
+            return response()->json([
+                "success" => false, 
+                'data' => []
+            ], 201);
+        }
+    }
     public function logout(Request $request)
     {
         $user = $request->user();
