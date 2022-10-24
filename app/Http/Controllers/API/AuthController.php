@@ -23,7 +23,7 @@ class AuthController extends Controller
                 'data' => $login_mail
             ]);
         }
-        $no_hp = str_split($user)[0] === '0' ? '62' . substr($user, 1): $user;
+        $no_hp = str_split($user)[0] === '0' ? '62' . substr($user, 1) : $user;
         $login_ph = $this->login_ph($no_hp, $password, $imei);
         return response()->json([
             'data' => $login_ph
@@ -32,15 +32,16 @@ class AuthController extends Controller
     public function login_mail($email, $password, $imei)
     {
         $user = Misterkong::table('m_userx')->where('email', $email)->where('passwd', $password)->where('status', 1)->first();
-        
+
         if (empty($user)) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'msg' => 'Email atau Password salah'
             ]);
-        }else {
+        } else {
             $token = hash('sha256', $plainTextToken = Str::random(40));
-            $array = ['imei' => $imei, 'token' => $token,
+            $array = [
+                'imei' => $imei, 'token' => $token,
                 'user_id' => $user->id,
                 'nama' => $user->nama,
                 'toko' => '-',
@@ -64,12 +65,13 @@ class AuthController extends Controller
         // print_r($user);
         if (empty($user)) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'msg' => 'nomor hp atau Password salah'
             ]);
-        }else {
+        } else {
             $token = hash('sha256', $plainTextToken = Str::random(40));
-            $array = ['imei' => $imei, 'token' => $token,
+            $array = [
+                'imei' => $imei, 'token' => $token,
                 'user_id' => $user->id,
                 'nama' => $user->nama,
                 'toko' => '-',
@@ -92,21 +94,21 @@ class AuthController extends Controller
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
 
-            $array = ([$offset, $lat, $lng]);
-            // DB::enableQueryLog();
-            $restos = DB::select('call p_get_toko_terdekat(?,?,?)', $array);
-            // dd(\DB::getQueryLog());
-            return response()->json([
-                'msg'   => 'success',
-                'data'      => $restos
-            ], 200);
+        $array = ([$offset, $lat, $lng]);
+        // DB::enableQueryLog();
+        $restos = DB::select('call p_get_toko_terdekat(?,?,?)', $array);
+        // dd(\DB::getQueryLog());
+        return response()->json([
+            'msg'   => 'success',
+            'data'      => $restos
+        ], 200);
     }
     public function terlaris(Request $request)
     {
         $offset = $request->offset ?? 0;
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
-            $query = "SELECT 
+        $query = "SELECT 
                             m_user_company.alamat,
                             m_user_company.id, 
                             m_user_company.company_id,
@@ -133,19 +135,19 @@ class AuthController extends Controller
                             HAVING distance < 30
                             LIMIT 10 OFFSET $offset";
 
-                $restos = DB::select(DB::raw($query));
+        $restos = DB::select(DB::raw($query));
 
-                if ($restos > 0) {
-                    return response()->json([
-                        'msg'   => 'success',
-                        'data'      => $restos
-                    ], 200);
-                }else {
-                    return response()->json([
-                        'msg'   => 'Terjadi Kesalahan',
-                        'data'      => []
-                    ], 201);
-                }
+        if ($restos > 0) {
+            return response()->json([
+                'msg'   => 'success',
+                'data'      => $restos
+            ], 200);
+        } else {
+            return response()->json([
+                'msg'   => 'Terjadi Kesalahan',
+                'data'      => []
+            ], 201);
+        }
     }
     public function terbaru(Request $request)
     {
@@ -153,19 +155,19 @@ class AuthController extends Controller
         $lat = $request->lat ?? 0;
         $lng = $request->lng ?? 0;
 
-            $array = ([$lat, $lng, $offset]);
-            $query = DB::select('call p_company_baru(?,?,?)', $array);
-            if (!empty($query)) {
-                return response()->json([
-                        'msg'   => 'success',
-                        'data'      => $query
-                    ], 200);
-                } else {
-                    return response()->json([
-                        'msg'   => 'Terjadi Kesalahan',
-                        'data'      => []
-                    ], 201);
-                }
+        $array = ([$lat, $lng, $offset]);
+        $query = DB::select('call p_company_baru(?,?,?)', $array);
+        if (!empty($query)) {
+            return response()->json([
+                'msg'   => 'success',
+                'data'      => $query
+            ], 200);
+        } else {
+            return response()->json([
+                'msg'   => 'Terjadi Kesalahan',
+                'data'      => []
+            ], 201);
+        }
     }
     public function populer(Request $request)
     {
@@ -199,13 +201,12 @@ class AuthController extends Controller
                 'msg'   => 'success',
                 'data'      => $restos
             ], 200);
-        }else {
+        } else {
             return response()->json([
                 'msg'   => 'Terjadi Kesalahan',
                 'data'      => []
             ], 201);
         }
-
     }
     public function search_menu(Request $request)
     {
@@ -244,7 +245,7 @@ class AuthController extends Controller
             return response()->json([
                 'msg'   => 'token kosong'
             ], 404);
-        }else {
+        } else {
             $query = "select m_user_company.id, m_user_company.nama_usaha, 
             m_user_company.company_id, m_kategori_usaha.nama 
             from t_favorite_food inner join m_user_company on m_user_company.id = t_favorite_food.kd_toko
@@ -268,14 +269,14 @@ class AuthController extends Controller
     {
         $id = $request->id;
         $lat = $request->lat ?? -8.5769951;
-        $long = $request-> long ?? 116.1004894;
+        $long = $request->long ?? 116.1004894;
         $token = $request->token;
         $user = DB::table('misterkong_log_webview.l_webview_mp')->where('token', $token)->first();
         if (empty($user)) {
             return response()->json([
                 'msg'   => 'token kosong'
             ], 404);
-        }else {
+        } else {
             $query = "SELECT m_user_company.id as id,m_user_company.company_id, m_user_company.nama_usaha, header, alamat, status_buka_toko, koordinat_lat, koordinat_lng ,(
                 3959 * acos (
                     cos ( radians(koordinat_lat) )
@@ -287,7 +288,7 @@ class AuthController extends Controller
             ) AS distance FROM m_user_company   
             INNER JOIN v_status_buka_toko
             ON v_status_buka_toko.id=m_user_company.id
-            WHERE m_user_company.id=". $id;
+            WHERE m_user_company.id=" . $id;
             $action = DB::select(DB::raw($query));
             if (!empty($action)) {
                 return response()->json([
@@ -300,20 +301,20 @@ class AuthController extends Controller
                     'data'      => []
                 ], 201);
             }
-            
         }
     }
     public function menu(Request $request)
     {
         $id = $request->id_toko;
         $user_id = $request->user_id;
+        $id_barang_satuan = $request->barang_satuan;
         $query = "SELECT * FROM
-		(select company_id,id,nama from m_kategori WHERE company_id = ".$id.") kategori
+		(select company_id,id,nama from m_kategori WHERE company_id = " . $id . ") kategori
 		INNER JOIN
 		(SELECT kategori_id,COUNT(kategori_id) AS jumlah_item FROM
-		(SELECT id,kategori_id FROM m_barang WHERE company_id = ".$id." AND status=2) barang
+		(SELECT id,kategori_id FROM m_barang WHERE company_id = " . $id . " AND status=2) barang
 		INNER JOIN
-		(SELECT barang_id FROM m_barang_satuan WHERE company_id =".$id." AND status=1) mbs
+		(SELECT barang_id FROM m_barang_satuan WHERE company_id =" . $id . " AND status=1) mbs
 		ON mbs.barang_id=barang.id
 		GROUP BY kategori_id) barang_satuan
 		ON barang_satuan.kategori_id=kategori.id";
@@ -322,7 +323,7 @@ class AuthController extends Controller
         if (!empty($row)) {
             $query_d = "SELECT a.nama_usaha, a.idbrg, a.barang, a.keterangan, a.status_brg, 
             a.harga_jual, a.jumlah, a.satuan, a.kat, a.tag, a.stok, a.is_promo, a.gambar, 
-            (select COUNT(kd_user) from t_favorite_food where kd_barang_satuan = a.id AND kd_user = ".$user_id.")
+            (select COUNT(kd_user) from t_favorite_food where kd_barang_satuan = a.id AND kd_user = " . $user_id . ")
             fav, 
 				case 
 				when ISNULL(varian.jml_varian) then 0 ELSE 1
@@ -333,20 +334,32 @@ class AuthController extends Controller
 					SELECT barang_satuan_id, COUNT(barang_satuan_id) AS jml_varian FROM m_barang_satuan_varian GROUP BY barang_satuan_id
 				) AS varian
 				ON a.id = varian.barang_satuan_id
-            WHERE a.company_id=".$id." order by stok desc limit 30";
+            WHERE a.company_id=" . $id . " order by stok desc limit 30";
             $result = DB::select(DB::raw($query_d));
-            return response()->json([
-                'msg'   => 'success',
-                'id_toko' => $id,
-                'data'      => $result
-            ], 200);
-        }else {
+            if ($result['status_varian'] == 1) {
+                $query_varian = DB::table('m_barang_satuan_varian ')
+                    ->select('m_varian.nama_varian', 'm_varian_details.nama', 'm_varian_details.harga', 'm_varian_details.no_urut', 'm_varian_details.keterangan')
+                    ->join('m_varian', 'm_barang_satuan_varian.varian_id', '=', 'm_varian.id')
+                    ->join('m_varian_details', 'm_varian.id', '=', 'm_varian_details.varian_id')
+                    ->where('m_barang_satuan_varian.barang_satuan_id', '=', $id_barang_satuan);
+                return response()->json([
+                    'msg'   => 'success',
+                    'id_toko' => $id,
+                    'data'      => $query_varian
+                ], 200);
+            } else {
+                return response()->json([
+                    'msg'   => 'success',
+                    'id_toko' => $id,
+                    'data'      => $result
+                ], 200);
+            }
+        } else {
             return response()->json([
                 'msg'   => 'data kosong',
                 'data'      => []
             ], 200);
         }
-
     }
     public function cari(Request $request)
     {
@@ -394,14 +407,12 @@ class AuthController extends Controller
                 'msg'   => 'success',
                 'data'      => $result
             ], 200);
-        }else {
+        } else {
             return response()->json([
                 'msg'   => 'gagal',
                 'data'      => []
             ], 200);
         }
-       
-
     }
     public function kongjek(Request $request)
     {
@@ -414,8 +425,8 @@ class AuthController extends Controller
         $total = $request->total;
         $user = DB::table('misterkong_log_webview.l_webview_mp')->select('user_id')->where('imei', $imei)->first();
         $id_user = $user->user_id;
-		$get_distance = $this->http_request("https://router.project-osrm.org/route/v1/driving/" . $lng_resto. "," . $lat_resto . ";" . $lng_dets . "," . $lat_dets . "?overview=false&alternatives=true&steps=true&hints=;");
-		$respon = json_decode($get_distance, true);
+        $get_distance = $this->http_request("https://router.project-osrm.org/route/v1/driving/" . $lng_resto . "," . $lat_resto . ";" . $lng_dets . "," . $lat_dets . "?overview=false&alternatives=true&steps=true&hints=;");
+        $respon = json_decode($get_distance, true);
         $distance = $respon['routes'][0]['distance'];
 
         $getRiders =  $this->http_request("https://misterkong.com/kajek/services/cari_driver.php?auth=appKeyAuth&restoLat=" . $lat_resto . "&restoLng=" . $lng_resto . "&desLat=" . $lat_dets . "&desLng=" . $lng_dets . "&kd_user=" . $id_user . "&rad=25&distan=" . $distance . "&total=" . $total);
@@ -425,46 +436,46 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
             ], 201);
-        }else {
+        } else {
             return response()->json([
-                "success" => true, 
-                "riders" => $riders, 
+                "success" => true,
+                "riders" => $riders,
                 "distance" => $distance
             ]);
         }
     }
     function http_request($url)
-	{
-		$ch = curl_init();
+    {
+        $ch = curl_init();
 
-		curl_setopt($ch, CURLOPT_URL, $url);
-		// return the transfer as a string 
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		// $output contains the output string 
-		$output = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        // return the transfer as a string 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        // $output contains the output string 
+        $output = curl_exec($ch);
 
-		// tutup curl 
-		curl_close($ch);
+        // tutup curl 
+        curl_close($ch);
 
-		// mengembalikan hasil curl
-		return $output;
-	}
+        // mengembalikan hasil curl
+        return $output;
+    }
     public function info_rider(Request $request)
     {
         $id_user = $request->id_rider;
         $query = DB::table('m_driver_kendaraan')->select('m_driver_kendaraan.nomor_plat', 'm_driver.nama_depan', 'm_merk_kendaraan.merk_nama', 'm_driver_kendaraan.STNK_expired', 'm_model_kendaraan.model_nama', 'm_driver.sim_exp')
-                    ->join('m_driver', 'm_driver_kendaraan.kd_driver', '=', 'm_driver.kd_driver')
-                    ->join('m_merk_kendaraan', 'm_driver_kendaraan.kd_merk', '=', 'm_merk_kendaraan.merk_id')
-                    ->join('m_model_kendaraan', 'm_driver_kendaraan.kd_model', '=', 'm_model_kendaraan.model_id')
-                    ->where('m_driver_kendaraan.status', '2')->where('m_driver.kd_driver', $id_user)->first();
+            ->join('m_driver', 'm_driver_kendaraan.kd_driver', '=', 'm_driver.kd_driver')
+            ->join('m_merk_kendaraan', 'm_driver_kendaraan.kd_merk', '=', 'm_merk_kendaraan.merk_id')
+            ->join('m_model_kendaraan', 'm_driver_kendaraan.kd_model', '=', 'm_model_kendaraan.model_id')
+            ->where('m_driver_kendaraan.status', '2')->where('m_driver.kd_driver', $id_user)->first();
         if (!empty($query)) {
             return response()->json([
                 'success' => true,
                 'data'   => $query
             ], 200);
-        }else {
+        } else {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 'data' => []
             ], 201);
         }
@@ -475,8 +486,8 @@ class AuthController extends Controller
         $user->currentAccessToken()->delete();
 
         return response()->json([
-                'success' => true,
-                'msg'   => 'Berhasil LogOut'
-            ], 200);
+            'success' => true,
+            'msg'   => 'Berhasil LogOut'
+        ], 200);
     }
 }
