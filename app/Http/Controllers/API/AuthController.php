@@ -336,12 +336,29 @@ class AuthController extends Controller
 				ON a.id = varian.barang_satuan_id
             WHERE a.company_id=" . $id . " order by stok desc limit 30";
             $result = DB::select(DB::raw($query_d));
-
-            return response()->json([
-                'msg'   => 'success',
-                'id_toko' => $id,
-                'data'      => $result
-            ], 200);
+            foreach ($result as $key => $value) {
+                $status_varian = $value->status_varian;
+            }
+            if ($status_varian == 1) {
+                // DB::enableQueryLog();
+                $query_varian = DB::table('m_barang_satuan_varian')
+                    ->select('m_varian.nama_varian', 'm_varian_details.nama', 'm_varian_details.harga', 'm_varian_details.no_urut', 'm_varian_details.keterangan')
+                    ->join('m_varian', 'm_barang_satuan_varian.varian_id', '=', 'm_varian.id')
+                    ->join('m_varian_details', 'm_varian.id', '=', 'm_varian_details.varian_id')
+                    ->where('m_barang_satuan_varian.barang_satuan_id', '=', $id_barang_satuan)->get();
+                // dd(DB::getQueryLog());
+                return response()->json([
+                    'msg'   => 'success',
+                    'id_toko' => $id,
+                    'data'      => $query_varian
+                ], 200);
+            }else {
+                return response()->json([
+                    'msg'   => 'success',
+                    'id_toko' => $id,
+                    'data'      => $result
+                ], 200);
+            }
         } else {
             return response()->json([
                 'msg'   => 'data kosong',
