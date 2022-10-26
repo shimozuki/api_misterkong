@@ -322,7 +322,7 @@ class AuthController extends Controller
 
         if (!empty($row)) {
             $query_d = "SELECT a.nama_usaha, a.idbrg, a.barang, a.keterangan, a.status_brg, 
-            a.harga_jual, a.jumlah, a.satuan, a.kat, a.tag, a.stok, a.is_promo, a.gambar, 
+            a.harga_jual, a.jumlah, a.satuan, a.kat, a.tag, a.stok, a.is_promo, a.gambar, a.id,
             (select COUNT(kd_user) from t_favorite_food where kd_barang_satuan = a.id AND kd_user = " . $user_id . ")
             fav, 
 				case 
