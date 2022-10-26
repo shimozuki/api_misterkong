@@ -350,13 +350,15 @@ class AuthController extends Controller
                 return response()->json([
                     'msg'   => 'success',
                     'id_toko' => $id,
-                    'data'      => $query_varian
+                    'data_barang'      => $result,
+                    'variant' => $query_varian
                 ], 200);
             }else {
                 return response()->json([
                     'msg'   => 'success',
                     'id_toko' => $id,
-                    'data'      => $result
+                    'data_barang' => $result,
+                    'variant' => []
                 ], 200);
             }
         } else {
