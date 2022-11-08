@@ -340,7 +340,7 @@ class AuthController extends Controller
                 $status_varian = $value->status_varian;
             }
             if (!empty($id_barang_satuan)) {
-                if ($status_varian === 1) {
+                if ($status_varian == 1) {
                     $qvarian = "SELECT mv.*,
                 mvd.kd_varian_details,
                 mvd.nama,
