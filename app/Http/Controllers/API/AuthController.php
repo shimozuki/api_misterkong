@@ -427,51 +427,6 @@ class AuthController extends Controller
             ], 200);
         }
     }
-    public function varian(Request $request)
-    {
-        $id = $request->id_toko;
-        $user_id = $request->user_id;
-        $id_barang_satuan = $request->barang_satuan;
-        $query_d = "SELECT a.nama_usaha, a.idbrg, a.barang, a.keterangan, a.status_brg, 
-            a.harga_jual, a.jumlah, a.satuan, a.kat, a.tag, a.stok, a.is_promo, a.gambar, 
-            (select COUNT(kd_user) from t_favorite_food where kd_barang_satuan = a.id AND kd_user = " . $user_id . ")
-            fav, 
-				case 
-				when ISNULL(varian.jml_varian) then 0 ELSE 1
-				 END AS status_varian
-				from v_food_list a
-				LEFT JOIN 
-				(
-					SELECT barang_satuan_id, COUNT(barang_satuan_id) AS jml_varian FROM m_barang_satuan_varian GROUP BY barang_satuan_id
-				) AS varian
-				ON a.id = varian.barang_satuan_id
-            WHERE a.company_id=" . $id . " order by stok desc limit 30";
-        $result = DB::select(DB::raw($query_d));
-
-        foreach ($result as $key => $value) {
-            $status_varian = $value->status_varian;
-        }
-        if ($status_varian == 1) {
-            // DB::enableQueryLog();
-            $query_varian = DB::table('m_barang_satuan_varian')
-                ->select('m_varian.nama_varian', 'm_varian_details.nama', 'm_varian_details.harga', 'm_varian_details.no_urut', 'm_varian_details.keterangan')
-                ->join('m_varian', 'm_barang_satuan_varian.varian_id', '=', 'm_varian.id')
-                ->join('m_varian_details', 'm_varian.id', '=', 'm_varian_details.varian_id')
-                ->where('m_barang_satuan_varian.barang_satuan_id', '=', $id_barang_satuan)->get();
-            // dd(DB::getQueryLog());
-            return response()->json([
-                'msg'   => 'success',
-                'id_toko' => $id,
-                'data'      => $query_varian
-            ], 200);
-        } else {
-            return response()->json([
-                'msg'   => 'success',
-                'id_toko' => $id,
-                'data'      => 'tidak ada varian'
-            ], 200);
-        }
-    }
     public function cari(Request $request)
     {
         $lat = $request->lat ?? -8.59597203;
