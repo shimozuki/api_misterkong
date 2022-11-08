@@ -371,7 +371,9 @@ class AuthController extends Controller
                 ON mvd.varian_id=mv.id";
                     // DB::enableQueryLog();
                     $output = [];
+                    DB::enableQueryLog();
                     $query_varian = DB::select(DB::raw($qvarian));
+                    dd(DB::getQueryLog());
                     foreach ($query_varian as $key => $value) {
                         $output[$key][] = $value;
                         $detailsv = $value->kd_varian_details;
