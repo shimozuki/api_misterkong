@@ -352,7 +352,7 @@ class AuthController extends Controller
                 (
                     SELECT * FROM
                     m_barang_satuan_varian WHERE barang_satuan_id 
-                    IN ('83964')
+                    IN (".$id_barang_satuan.")
                 )
                 mbsv 
                 INNER JOIN m_varian mv ON mbsv.varian_id=mv.id
