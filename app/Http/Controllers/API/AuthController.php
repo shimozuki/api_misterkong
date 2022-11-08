@@ -339,26 +339,85 @@ class AuthController extends Controller
             foreach ($result as $key => $value) {
                 $status_varian = $value->status_varian;
             }
-            if ($status_varian == 1) {
-                // DB::enableQueryLog();
-                $query_varian = DB::table('m_barang_satuan_varian')
-                    ->select('m_varian.nama_varian', 'm_varian_details.nama', 'm_varian_details.harga', 'm_varian_details.no_urut', 'm_varian_details.keterangan')
-                    ->join('m_varian', 'm_barang_satuan_varian.varian_id', '=', 'm_varian.id')
-                    ->join('m_varian_details', 'm_varian.id', '=', 'm_varian_details.varian_id')
-                    ->where('m_barang_satuan_varian.barang_satuan_id', '=', $id_barang_satuan)->get();
-                // dd(DB::getQueryLog());
-                return response()->json([
-                    'msg'   => 'success',
-                    'id_toko' => $id,
-                    'data_barang'      => $result,
-                    'variant' => $query_varian
-                ], 200);
-            }else {
+            if (!empty($id_barang_satuan)) {
+                if ($status_varian === 1) {
+                    $qvarian = "SELECT mv.*,
+                mvd.kd_varian_details,
+                mvd.nama,
+                mvd.harga,
+                mvd.keterangan,
+                mvd.reff,
+                mvd.no_urut
+                FROM 
+                (
+                    SELECT * FROM
+                    m_barang_satuan_varian WHERE barang_satuan_id 
+                    IN ('83964')
+                )
+                mbsv 
+                INNER JOIN m_varian mv ON mbsv.varian_id=mv.id
+                INNER JOIN 
+                (
+                    SELECT varian_id,
+                    GROUP_CONCAT(kd_varian_details ORDER BY no_urut) AS kd_varian_details,
+                    GROUP_CONCAT(nama ORDER BY no_urut) AS nama,
+                    GROUP_CONCAT(harga ORDER BY no_urut) AS harga,
+                    GROUP_CONCAT(keterangan ORDER BY no_urut) AS keterangan,
+                    GROUP_CONCAT(reff ORDER BY no_urut) AS reff,
+                    GROUP_CONCAT(no_urut ORDER BY no_urut) AS no_urut
+                    FROM m_varian_details
+                    GROUP BY varian_id
+                ) mvd 
+                ON mvd.varian_id=mv.id";
+                    // DB::enableQueryLog();
+                    $output = [];
+                    $query_varian = DB::select(DB::raw($qvarian));
+                    foreach ($query_varian as $key => $value) {
+                        $output[$key][] = $value;
+                        $detailsv = $value->kd_varian_details;
+                        $nama_detail = $value->nama;
+                        $harga = $value->harga;
+                        $keterangan = $value->keterangan;
+                        $reff = $value->reff;
+                        $kd_varian = $value->kd_varian;
+                        $nama_varian = $value->nama_varian;
+                        $statusv = $value->status_varian; 
+                        $maxvarian = $value->status_max;
+                        $kd_detail = explode(',', $detailsv);
+                        $namadetail = explode(',', $nama_detail);
+                        $hargad = explode(',', $harga);
+                        $keterangand = explode(',', $keterangan);
+                        $reffd = explode(',', $reff);
+                        // echo "<pre>";
+                        // print_r($nama);
+                        // echo "</pre>";
+                        $detail = [];
+                        for ($i=0; $i < count($kd_detail); $i++) { 
+                            $detail[] = ['id_varian' => $kd_detail[$i], 'nama' => $namadetail[$i], 'harga' => $hargad[$i], 'keterangan' => $keterangand[$i], 'reff' => $reffd[$i]];
+                         }
+                        //  $output[$key]['detail'] = $detail;
+                    }
+                    // dd(DB::getQueryLog());
+                    // return response()->json([$output], 200);
+                    return response()->json([
+                        'kd_varian' => $kd_varian,
+                        'nama_varian' => $nama_varian,
+                        'status_varian' => $statusv,
+                        'max_varian' => $maxvarian,
+                        'detail' => [$detail]
+                    ], 200);
+                }else {
+                    return response()->json([
+                        'msg'   => 'success',
+                        'id_toko' => $id,
+                        'variant' => []
+                    ], 202);
+                }
+            } else {
                 return response()->json([
                     'msg'   => 'success',
                     'id_toko' => $id,
                     'data_barang' => $result,
-                    'variant' => []
                 ], 200);
             }
         } else {
