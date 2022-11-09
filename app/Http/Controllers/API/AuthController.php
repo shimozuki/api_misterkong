@@ -395,7 +395,7 @@ class AuthController extends Controller
                         // echo "</pre>";
                         $detail = [];
                         for ($i=0; $i < count($kd_detail); $i++) { 
-                            $detail[] = ['kd_varian_detail' => $kd_detail[$i], 'nama' => $namadetail[$i], 'harga' => $hargad[$i], 'keterangan' => $keterangand[$i], 'reff' => $reffd[$i]];
+                            $detail[] = ['kd_varian_detail' => $kd_detail[$i], 'nama' => $namadetail[$i], 'harga' => floatval($hargad[$i]), 'keterangan' => $keterangand[$i], 'reff' => intval($reffd[$i])];
                          }
                          $data_varian[] = ['kd_varian' => $kd_varian, 'nama' => $nama_varian, 'status_varian' => $statusv, 'max_varian' => $maxvarian, 'detail' =>  $detail];
                         //  $output[$key]['detail'] = $detail;
