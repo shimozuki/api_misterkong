@@ -397,16 +397,15 @@ class AuthController extends Controller
                         for ($i=0; $i < count($kd_detail); $i++) { 
                             $detail[] = ['id_varian' => $kd_detail[$i], 'nama' => $namadetail[$i], 'harga' => $hargad[$i], 'keterangan' => $keterangand[$i], 'reff' => $reffd[$i]];
                          }
+                         $data_varian[] = ['kd_varian' => $kd_varian, 'nama' => $nama_varian, 'status_varian' => $statusv, 'max_varian' => $maxvarian, 'detail' =>  $detail];
                         //  $output[$key]['detail'] = $detail;
                     }
                     // dd(DB::getQueryLog());
                     // return response()->json([$output], 200);
                     return response()->json([
-                        'kd_varian' => $kd_varian,
-                        'nama_varian' => $nama_varian,
-                        'status_varian' => $statusv,
-                        'max_varian' => $maxvarian,
-                        'detail' => $detail
+                        'msg'   => 'success',
+                        'id_toko' => $id,
+                        'data_variant' => [$data_varian]
                     ], 200);
                 }else {
                     return response()->json([
