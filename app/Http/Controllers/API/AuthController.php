@@ -406,7 +406,7 @@ class AuthController extends Controller
                         'nama_varian' => $nama_varian,
                         'status_varian' => $statusv,
                         'max_varian' => $maxvarian,
-                        'detail' => [$detail]
+                        'detail' => $detail
                     ], 200);
                 }else {
                     return response()->json([
