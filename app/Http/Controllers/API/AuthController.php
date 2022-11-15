@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use App\Models\Misterkong;
+use DateTime;
 use Illuminate\Support\Str;
 
 
@@ -352,7 +353,7 @@ class AuthController extends Controller
                 (
                     SELECT * FROM
                     m_barang_satuan_varian WHERE barang_satuan_id 
-                    IN (".$id_barang_satuan.")
+                    IN (" . $id_barang_satuan . ")
                 )
                 mbsv 
                 INNER JOIN m_varian mv ON mbsv.varian_id=mv.id
@@ -383,7 +384,7 @@ class AuthController extends Controller
                         $reff = $value->reff;
                         $kd_varian = $value->kd_varian;
                         $nama_varian = $value->nama_varian;
-                        $statusv = $value->status_varian; 
+                        $statusv = $value->status_varian;
                         $maxvarian = $value->status_max;
                         $kd_detail = explode(',', $detailsv);
                         $namadetail = explode(',', $nama_detail);
@@ -394,10 +395,10 @@ class AuthController extends Controller
                         // print_r($nama);
                         // echo "</pre>";
                         $detail = [];
-                        for ($i=0; $i < count($kd_detail); $i++) { 
+                        for ($i = 0; $i < count($kd_detail); $i++) {
                             $detail[] = ['kd_varian_detail' => $kd_detail[$i], 'nama' => $namadetail[$i], 'harga' => floatval($hargad[$i]), 'keterangan' => $keterangand[$i], 'reff' => intval($reffd[$i])];
-                         }
-                         $data_varian[] = ['kd_varian' => $kd_varian, 'nama' => $nama_varian, 'status_varian' => $statusv, 'max_varian' => $maxvarian, 'detail' =>  $detail];
+                        }
+                        $data_varian[] = ['kd_varian' => $kd_varian, 'nama' => $nama_varian, 'status_varian' => $statusv, 'max_varian' => $maxvarian, 'detail' =>  $detail];
                         //  $output[$key]['detail'] = $detail;
                     }
                     // dd(DB::getQueryLog());
@@ -407,7 +408,7 @@ class AuthController extends Controller
                         'id_toko' => $id,
                         'data_variant' => $data_varian
                     ], 200);
-                }else {
+                } else {
                     return response()->json([
                         'msg'   => 'success',
                         'id_toko' => $id,
@@ -527,6 +528,38 @@ class AuthController extends Controller
         // mengembalikan hasil curl
         return $output;
     }
+    public function getongkir(Request $request)
+    {
+        $prov = $request->provinsi;
+        $distace = $request->dist;
+        $jarak_km = $distace / 1000;
+        $query = "SELECT kd_zona from m_driver_zona_lokasi WHERE lokasi = '" . $prov . "' or lokasi_1 = '" . $prov . "' ";
+        $get_zona = DB::select(DB::raw($query));
+        $kd_zona = $get_zona['kd_zona'];
+        if (!empty($kd_zona)) {
+            $query_ongkir = "SELECT case when $jarak_km < jarak_pertama then fee_minim_bawah else $jarak_km * batas_bawah end as ongkir from m_driver_zona WHERE kd_zona=" . $kd_zona;
+            $get_ongkir = DB::select(DB::raw($query_ongkir));
+            if(!empty($get_ongkir))
+            {
+                return response()->json([
+                    'success' => true,
+                    'data'   => $get_ongkir
+                ], 200);
+            }else {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Gagal Request',
+                    'data'   => []
+                ], 200);
+            }
+        }else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kode Zona Tidak di temukan',
+                'data'   => []
+            ], 200);
+        }
+    }
     public function info_rider(Request $request)
     {
         $id_user = $request->id_rider;
@@ -546,6 +579,56 @@ class AuthController extends Controller
                 'data' => []
             ], 201);
         }
+    }
+    public function chekout(Request $request)
+    {
+        $data = '[' . $request->data . ']';
+        $user_id = 113;
+        $test[] = json_decode($data, true);
+        $potongan = DB::table('m_potongan')->select('*')->where('id', 3)->first();
+        $potonganToko = $potongan->jenis == 1 ? $potongan->nominal : ($potongan->nominal * $data['total']) / 100;
+        $no_transaksi = $this->no_transaksi($user_id);
+        DB::beginTransaction();
+        DB::insert('t_penjualan', [
+            'no_transaksi'    => $no_transaksi,
+            'tanggal'         => date('Y-m-d H:i:s'),
+            'user_id_toko'    => $data['resto'],
+            'user_id_pembeli' => $user_id,
+            'status_barang'   => 0,
+            'jenis_transaksi' => 'FOOD',
+            'ppn'             => 0,
+            'pph'             => 0,
+            'ppnbm'           => 0,
+            'pemesanan'       => 0,
+            'lain_lain'       => 0,
+            'status_review'   => 0,
+            'biaya_aplikasi'  => $data['biayaAplikasi'],
+            'potongan_toko'   => $potonganToko,
+        ]);
+        $penjualanID = DB::getPdo()->lastInsertId();
+
+        $oreder = $data['oreder'];
+        foreach ($data['oreder'] as $key => $value) {
+            DB::insert('t_penjualan_detail', [
+                'no_transaksi'  => $no_transaksi,
+                'item_id'       => $value['id'],
+                'qty'           => $value['qty'],
+                'harga_jual'    => $value['harga_jual'],
+                'diskon'        => $value['diskon'],
+                'keterangan'    => $value['notes'] ?? '-',
+                'penjualan_id'  => $penjualanID,
+            ]);
+        }
+    }
+    public function no_transaksi($user_id)
+    {
+        $date = new DateTime();
+        $noTransaksi = 'F0' . sprintf('%04d', $user_id) . $date->format('ymdHisv');
+
+        return substr($noTransaksi, 0, -1);
+    }
+    public function getRider()
+    {
     }
     public function logout(Request $request)
     {

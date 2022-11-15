@@ -44,3 +44,4 @@ Route::post('/menu', [AuthController::class, 'menu']);
 Route::post('/cari', [AuthController::class, 'cari']);
 Route::post('/rider', [AuthController::class, 'kongjek']);
 Route::post('/info_rider', [AuthController::class, 'info_rider']);
+Route::post('/chekout', [AuthController::class, 'chekout']);
