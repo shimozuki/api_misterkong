@@ -530,34 +530,48 @@ class AuthController extends Controller
     }
     public function getongkir(Request $request)
     {
-        $prov = $request->provinsi;
-        $distace = $request->dist;
-        $jarak_km = $distace / 1000;
-        $query = "SELECT kd_zona from m_driver_zona_lokasi WHERE lokasi = '" . $prov . "' or lokasi_1 = '" . $prov . "' ";
-        $get_zona = DB::select(DB::raw($query));
-        $kd_zona = $get_zona['kd_zona'];
-        if (!empty($kd_zona)) {
-            $query_ongkir = "SELECT case when $jarak_km < jarak_pertama then fee_minim_bawah else $jarak_km * batas_bawah end as ongkir from m_driver_zona WHERE kd_zona=" . $kd_zona;
-            $get_ongkir = DB::select(DB::raw($query_ongkir));
-            if(!empty($get_ongkir))
-            {
+        $provinsi = $request->provinsi;
+        $jarak = $request->jarak;
+        $jenis_kndr = $request->jenis_kndr;
+        $app_id = $request->appid;
+        $get_zona = DB::table('m_driver_zona_lokasi')->select('kd_zona')->where('lokasi', $provinsi)->orwhere('lokasi_1', $provinsi)->first();
+        if (empty($get_zona)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Zona tidak ditemukan',
+                'data'   => []
+            ], 400);
+        } else {
+            $zona_id = $get_zona->kd_zona;
+            $distance = $jarak / 1000;
+            $zona_driver = DB::table('m_driver_zona')->select('*')->where('zona_id', '=', $zona_id, 'AND', 'app_id', '=', $app_id, 'AND', 'jenis_kendaraan_id', '=', $jenis_kndr)->get();
+            foreach ($zona_driver as $key => $value) {
+                $jarak_pertama = $value->jarak_pertama;
+                $feemibawah = $value->fee_minim_bawah;
+                $batasbawah = $value->batas_bawah;
+                $biyaya = $value->biaya1;
+            }
+            if (empty($zona_id)) {
                 return response()->json([
-                    'success' => true,
-                    'data'   => $get_ongkir
-                ], 200);
-            }else {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Gagal Request',
+                    'success' => false,
+                    'message' => 'Zona tidak ditemukan',
                     'data'   => []
+                ], 400);
+            }
+            $gap = $distance - $jarak_pertama;
+            if ($gap <= 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'success',
+                    'ongkir'   => $feemibawah + $biyaya
                 ], 200);
             }
-        }else {
+            $ongkir = $feemibawah + ($gap * $batasbawah) + $biyaya;
             return response()->json([
                 'success' => true,
-                'message' => 'Kode Zona Tidak di temukan',
-                'data'   => []
-            ], 200);
+                'message' => 'success',
+                'ongkir'   => ceil($ongkir / 1000) * 1000
+            ], 201);
         }
     }
     public function info_rider(Request $request)
@@ -582,43 +596,108 @@ class AuthController extends Controller
     }
     public function chekout(Request $request)
     {
-        $data = '[' . $request->data . ']';
-        $user_id = 113;
+        $data = $request->data;
         $test[] = json_decode($data, true);
         $potongan = DB::table('m_potongan')->select('*')->where('id', 3)->first();
         $potonganToko = $potongan->jenis == 1 ? $potongan->nominal : ($potongan->nominal * $data['total']) / 100;
-        $no_transaksi = $this->no_transaksi($user_id);
-        DB::beginTransaction();
-        DB::insert('t_penjualan', [
-            'no_transaksi'    => $no_transaksi,
-            'tanggal'         => date('Y-m-d H:i:s'),
-            'user_id_toko'    => $data['resto'],
-            'user_id_pembeli' => $user_id,
-            'status_barang'   => 0,
-            'jenis_transaksi' => 'FOOD',
-            'ppn'             => 0,
-            'pph'             => 0,
-            'ppnbm'           => 0,
-            'pemesanan'       => 0,
-            'lain_lain'       => 0,
-            'status_review'   => 0,
-            'biaya_aplikasi'  => $data['biayaAplikasi'],
-            'potongan_toko'   => $potonganToko,
-        ]);
-        $penjualanID = DB::getPdo()->lastInsertId();
-
-        $oreder = $data['oreder'];
-        foreach ($data['oreder'] as $key => $value) {
-            DB::insert('t_penjualan_detail', [
-                'no_transaksi'  => $no_transaksi,
-                'item_id'       => $value['id'],
-                'qty'           => $value['qty'],
-                'harga_jual'    => $value['harga_jual'],
-                'diskon'        => $value['diskon'],
-                'keterangan'    => $value['notes'] ?? '-',
-                'penjualan_id'  => $penjualanID,
+        $no_transaksi = $this->no_transaksi($test[0]['user_id']);
+        // $lat = $test[0]['restoLatLn'];
+        // return $test;
+        try {
+            DB::beginTransaction();
+            $data_tpenjualan = [
+                'no_transaksi'    => $no_transaksi,
+                'tanggal'         => date('Y-m-d H:i:s'),
+                'user_id_toko'    => $test[0]['restoId'],
+                'user_id_pembeli' => $test[0]['user_id'],
+                'status_barang'   => 0,
+                'jenis_transaksi' => 'FOOD',
+                'ppn'             => 0,
+                'pph'             => 0,
+                'ppnbm'           => 0,
+                'pemesanan'       => 0,
+                'lain_lain'       => 0,
+                'status_review'   => 0,
+                'biaya_aplikasi'  => $test[0]['biayaAplikasi'],
+                'potongan_toko'   => $potonganToko,
+            ];
+            DB::table('t_penjualan')->insert($data_tpenjualan);
+            $penjualanID = DB::getPdo()->lastInsertId();
+            $oreder = $test[0]['order'];
+            foreach ($oreder as $key => $value) {
+                DB::table('t_penjualan_detail')->insert( [
+                    'no_transaksi'  => $no_transaksi,
+                    'item_id'       => $value['item_id'],
+                    'qty'           => $value['qty'],
+                    'harga_jual'    => $value['harga_jual'],
+                    'diskon'        => $value['diskon'],
+                    'keterangan'    => $value['notes'] ?? '-',
+                    'penjualan_id'  => $penjualanID,
+                ]);
+            }
+    
+            DB::table('t_pengiriman')->insert([
+                'no_penjualan' => $penjualanID,
+                'nama_tujuan' => $test[0]['nama'],
+                'origin_koordinat_lat' => $test[0]['restoLat'],
+                'origin_koordinat_lng' => $test[0]['restoLng'],
+                'dest_alamat' => $test[0]['deliveryAddress'],
+                'dest_koordinat_lat' => $test[0]['deliveryLat'],
+                'dest_koordinat_lng' => $test[0]['deliveryLng'],
+                'status_pembayaran' => 0,
+                'ongkir' => $test[0]['ongkir'],
+                'kurir' => 'DRIVER',
+                'layanan' => 'FOOD',
+                'dest_keterangan' => $test[0]['deliveryNotes'] ?? "-",
+                'date_add' => date('Y-m-d H:i:s'),
             ]);
+    
+            // insert penagihan
+            $nopenagihan = $this->no_penagihan();
+            DB::table('t_penagihan')->insert([
+                'no_penagihan' => 'TAG2022111400091',
+                'total_pembayaran' => $test[0]['total'],
+                'total_diskon' => $test[0]['diskon'],
+                'total_ongkir' => $test[0]['ongkir'],
+                'jenis_pembayaran' => $test[0]['paymentMethod'],
+                'status' => 0,
+            ]);
+            $penagihanId = DB::getPdo()->lastInsertId();
+            
+            DB::table('t_penagihan_detail')->insert([
+                'no_penagihan' => $penagihanId,
+                'no_transaksi_penjualan' => $penjualanID,
+                'total' => $test[0]['total'],
+                'diskon' => $test[0]['diskon'],
+                'ongkir' => $test[0]['ongkir'],
+              ]);
+    
+              DB::commit();
+              return response([
+                'message' => "User created successfully",
+                'status' => "success"
+            ], 200);
+        } catch (\Exception $exp) {
+            DB::rollBack(); 
+            return response([
+                'message' => $exp->getMessage(),
+                'status' => 'failed'
+            ], 400);
         }
+    }
+    public function no_penagihan()
+    {
+        $query = "SELECT MAX(no_penagihan) notrans FROM t_penagihan";
+        $exe_max_trans = DB::select(DB::raw($query));
+        $nomor = $exe_max_trans;
+        $noUrut = (int) substr('$nomor', -5);
+        if ($exe_max_trans == 0) {
+            $no_trans = "TAG" . date("Ymd") . "00001";
+        } else {
+            $noUrut++;
+            $no_trans = "TAG" . date("Ymd") . sprintf("%05s", $noUrut);
+        }
+        return $exe_max_trans;
     }
     public function no_transaksi($user_id)
     {
@@ -627,9 +706,95 @@ class AuthController extends Controller
 
         return substr($noTransaksi, 0, -1);
     }
-    public function getRider()
+    public function getRiderInfo(Request $request)
     {
+        $id_rider = $request->id_rider;
+        $query = "SELECT * FROM m_driver 
+        INNER JOIN m_driver_kendaraan ON m_driver.kd_driver = m_driver_kendaraan.kd_driver WHERE m_driver_kendaraan.status = 2 AND m_driver.kd_driver = $id_rider";
+        $getinfo_rider = DB::select(DB::raw($query));
+        return response()->json([
+            'success' => true,
+            'data'   => $getinfo_rider
+        ], 200);
     }
+    public function penolakan(Request $request)
+    {
+        $data = [
+            'id_penjualan' => $request->id_penjualan,
+            'id_driver' => $request->id_driver,
+            'tanggal' => date('Y-m-d H:i:s'),
+            'status' => $request->status,
+        ];
+
+        $insert = DB::insert('t_penjualan_driver_batal', $data);
+
+        if ($insert == TRUE) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Penolakan Berhasil'
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Penolakan gagal'
+            ], 400);
+        }
+    }
+    // public function getRider(Request $request)
+    // {
+    //     $lat = $request->lat;
+    //     $lng = $request->lng;
+    //     $jenis_kndr = $request->jenis_kndr;
+    //     $total = $request->total;
+    //     $id_penjualan = $request->id_penjualan;
+    //     $radius = $request->radius;
+
+    //     $query_getrider = "SELECT 
+    //     md.kd_driver AS KODE_DRIVER,
+    //     md.nama_depan AS NAMA_ DRIVER,
+    //     md.hp1 AS NO_HP,
+    //     mdk.nomor_plat AS PLAT_MOTOR,
+    //     ROUND(
+    //         3959 * ACOS(
+    //             COS(RADIANS('" . $lat . "')) * COS(RADIANS( mdll.loc_lat )) * 
+    //             COS(RADIANS( mdll.loc_lng )- RADIANS( '" . $lng . "' )) + 
+    //             SIN(RADIANS( '" . $lat . "' )) * SIN(RADIANS( mdll.loc_lat )) 
+    //         ),2
+    //     ) AS JARAK_DRIVER,IFNULL(lf.qtytr,0) AS DAY_TRANS,
+    //     msd.saldo AS SALDO
+    //     FROM m_driver AS md
+    //     INNER JOIN m_driver_location_log AS mdll ON mdll.kd_driver = md.kd_driver
+    //     INNER JOIN m_driver_kendaraan as mdk ON mdk.kd_driver=md.kd_driver
+    //     INNER JOIN m_saldo_driver as msd ON msd.kd_driver=md.kd_driver
+    //     LEFT JOIN 
+    //     (
+    //         SELECT td.kd_driver,COUNT( td.kd_driver ) AS qtytr
+    //         FROM t_driver AS td
+    //         WHERE DATE( td.tanggal )= CURRENT_DATE
+    //         GROUP BY td.kd_driver 		
+    //     ) lf 
+    //     ON md.kd_driver = lf.kd_driver 
+    //     WHERE md.`status`=3 AND mdll.driver_state=1 AND mdk.`status`=2 AND msd.saldo >= '" . $total . "'
+    //     AND kd_jenis_kendaraan= '" . $jenis_kndr . "' AND md.kd_driver NOT IN (SELECT id_driver FROM t_penjualan_driver_batal WHERE id_penjualan = '" . $id_penjualan . "' AND `status` = 1)
+    //     HAVING JARAK_DRIVER <= '" . $radius . "'
+    //     ORDER BY qtytr,JARAK_DRIVER
+    //     LIMIT 0,10;";
+
+    //     $getrider = DB::select(DB::raw($query_getrider));
+    //     if (!empty($getrider)) {
+    //         return response()->json([
+    //             'success' => true,
+    //             'msg'   => 'success',
+    //             'data' => $getrider
+    //         ], 200);
+    //     } else {
+    //         return response()->json([
+    //             'success' => false,
+    //             'msg'   => 'Gagal request'
+    //         ], 500);
+    //     }
+
+    // }
     public function logout(Request $request)
     {
         $user = $request->user();
