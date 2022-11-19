@@ -385,7 +385,7 @@ class AuthController extends Controller
                     FROM m_varian_details
                     GROUP BY varian_id
                 ) mvd 
-                ON mvd.varian_id=mv.id";
+                ON mvd.varian_id=mv.id WHERE mv.status = 1";
                     // DB::enableQueryLog();
                     $output = [];
                     // DB::enableQueryLog();
@@ -401,7 +401,9 @@ class AuthController extends Controller
                         $kd_varian = $value->kd_varian;
                         $nama_varian = $value->nama_varian;
                         $statusv = $value->status_varian;
-                        $maxvarian = $value->status_max;
+                        $maxvarian = $value->batas_maksimum;
+                        $status_max = $value->status_max;
+                        $min_varian = $value->jumlah_varian_min;
                         $kd_detail = explode(',', $detailsv);
                         $namadetail = explode(',', $nama_detail);
                         $hargad = explode(',', $harga);
@@ -417,7 +419,7 @@ class AuthController extends Controller
                                 'reff' => intval($reffd[$i])
                             ];
                         }
-                        $data_varian[] = ['kd_varian' => $kd_varian, 'nama' => $nama_varian, 'status_varian' => $statusv, 'max_varian' => $maxvarian, 'detail' =>  $detail];
+                        $data_varian[] = ['kd_varian' => $kd_varian, 'nama' => $nama_varian, 'status_varian' => $statusv, 'jumlah_varian_min' => $min_varian, 'status_maximum' => $status_max, 'batas_maksimum' => $maxvarian, 'detail' =>  $detail];
                         //  $output[$key]['detail'] = $detail;
                     }
                     // dd(DB::getQueryLog());
