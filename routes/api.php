@@ -49,5 +49,7 @@ Route::post('/getongkir', [AuthController::class, 'getongkir']);
 Route::post('/getinfo_rider', [AuthController::class, 'getRiderInfo']);
 Route::post('/penolakan', [AuthController::class, 'penolakan']);
 Route::post('/no_penagihan', [AuthController::class, 'no_penagihan']);
+Route::post('/pecah', [AuthController::class, 'pecah']);
+Route::post('/register', [AuthController::class, 'register']);
 
 

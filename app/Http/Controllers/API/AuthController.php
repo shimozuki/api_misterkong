@@ -706,6 +706,16 @@ class AuthController extends Controller
             ], 400);
         }
     }
+    public function pecah(Request $request)
+    {
+        $data = $request->data;
+        $test = json_decode($data, true);
+        $array[] = [$test];
+        return response([
+            'message' => $array
+        ], 400);
+
+    }
     public function no_penagihan()
     {
         $query = "SELECT MAX(no_penagihan) notrans FROM t_penagihan";
@@ -816,6 +826,77 @@ class AuthController extends Controller
     //     }
 
     // }
+    public function register(Request $request)
+    {
+        $email = $request->email;
+        $no_hp = str_split($request->no_hp) [0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
+        $cek_no_hp = DB::table('m_userx')->where('no_hp', $no_hp)->orWhere('status', 1)->get();
+        $cek_email = DB::table('m_userx')->where('email', $email)->orWhere('status', 1)->get();
+        if (!empty($cek_no_hp)) {
+            return response()->json([
+                'success' => false,
+                'msg'   => 'sudah digunakan'
+            ], 201);
+        }elseif (!empty($email)) {
+            return response()->json([
+                'success' => false,
+                'msg'   => 'sudah digunakan'
+            ], 201);
+        } else{
+            $data = [
+                'kd_grup' => 2,
+                'nama' => $request->nama,
+                'password' => md5($request->password),
+                'keterangan' => '-',
+                'no_hp' => $no_hp,
+                'status_phone' => '0',
+                'email' => $email,
+                'status_email' => '0',
+                'jenis_user' => '0',
+            ];
+            $cek_no_hp_nonaktif = DB::table('m_userx')->where('no_hp', $no_hp)->orWhere('status', 0);
+            if (!empty($cek_no_hp_nonaktif)) {
+                $simpan = DB::table('m_userx')->update($data);
+            } else {
+                $ex_max_trans = DB::table('m_userx')->select('max(id) as s')->get();
+                $trans = $ex_max_trans;
+                $nomor = $trans['notrans'];
+                if(empty($ex_max_trans))
+                {
+                    $no_trans = 1;
+                }else{
+                    $no_trans = $nomor + 1;
+                }
+                $ex_max_transkd = DB::table('m_userx')->select('max(kd_user)')->get();
+                $transkd = $ex_max_transkd;
+                $nomorkd = $transkd['notrans'];
+                $nourut = (int) substr($nomor, -3);
+                if(empty($ex_max_transkd))
+                {
+                    $no_transkd = "UAA001";
+                }else{
+                    $nourut++;
+                    $no_transkd = "UAA".sprintf("%30s", $nourut);
+                }
+                $data['id'] = $no_trans;
+                $data['kd_user'] = $no_transkd;
+                $simpan = DB::table('m_userx')->insert($data);
+            }
+            if($simpan == FALSE)
+            {
+                return response()->json([
+                    'success' => false,
+                    'msg'   => 'gagal insert'
+                ], 205);
+            }else{
+                return response()->json([
+                    'success' => true,
+                    'msg'   => 'Berhasil insert'
+                ], 200);
+            }
+            
+        }
+    }
     public function logout(Request $request)
     {
         $user = $request->user();
@@ -826,4 +907,5 @@ class AuthController extends Controller
             'msg'   => 'Berhasil LogOut'
         ], 200);
     }
+   
 }
