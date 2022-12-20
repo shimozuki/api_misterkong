@@ -897,6 +897,21 @@ class AuthController extends Controller
             
         }
     }
+    // public function get_ongkir(Request $request)
+    // {
+    //     $prov = $request->provinsi;
+    //     $get_zona_id = DB::table('m_driver_zona_lokasi')->where('lokasi', $prov)->orWhere('lokasi_1', $prov);
+    //     if (empty($get_zona_id)) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'msg'   => 'zona tidak di temukan'
+    //         ], 404);
+    //     }else{
+    //         $zona_id = $request->kd_zona;
+    //         $distance = $request->distance / 1000;
+    //     }
+    //     $zona_driver = new
+    // }
     public function logout(Request $request)
     {
         $user = $request->user();
