@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use App\Models\Misterkong;
+use App\Models\MisterkongMp;
 use DateTime;
 use Illuminate\Support\Str;
 
@@ -615,7 +616,7 @@ class AuthController extends Controller
             ], 201);
         }
     }
-    public function chekout(Request $request)
+    public function chekout_old(Request $request)
     {
         $data = $request->data;
         $test[] = json_decode($data, true);
@@ -706,6 +707,118 @@ class AuthController extends Controller
             ], 400);
         }
     }
+
+    public function chekout(Request $request)
+    {
+
+        $data_post=$request->all();
+        $data_save=[];
+        $detail=[];
+        $no_transaksi = $this->no_transaksi($data_post['user_id']);
+
+        $data = MisterkongMp::getDataCheckOut($data_post['toko_id']);   
+
+
+        $no_urut=1;
+        foreach ($data_post['data_trans'] as $key_dt => $value_dt) {
+            if (!empty($value_dt['data_varian']))  {
+                
+                $detail[]=array(
+                    'no_transaksi' => $no_transaksi,
+                    'item_id' =>$value_dt['idbrg'],
+                    'qty' => $value_dt['qty'],
+                    'harga_jual' => $value_dt['harga_jual'],
+                    'diskon' =>0,
+                    'keterangan' =>'-',
+                    'penjualan_id' =>'',
+                    'reff' =>'',
+                    'group_id' =>$key_dt+1,
+                    'no_urut' => $no_urut
+                );
+
+                foreach ($value_dt['data_varian'] as $key_varian => $value_varian) {
+                    $barang_id_reff=$data->id;
+                    if (!empty($value_varian['idBrg'])) {
+                        $barang_id_reff=$value_varian['idBrg'];
+                    }
+                    $detail[]=array(
+                        'no_transaksi' => $no_transaksi,
+                        'item_id'=>$barang_id_reff,
+                        'qty' => $value_dt['qty'],
+                        'harga_jual' => $value_varian['harga'],
+                        'diskon' =>0,
+                        'keterangan' =>$value_varian['varNama'],
+                        'penjualan_id' =>'',
+                        'reff' =>$value_varian['reff'],
+                        'group_id' =>$key_dt+1,
+                        'no_urut' => $no_urut
+                    );
+                    $no_urut++;
+                }
+                
+            }else{
+                $detail[]=array(
+                    'no_transaksi' => $no_transaksi,
+                    'item_id' =>$value_dt['idbrg'],
+                    'qty' => $value_dt['qty'],
+                    'harga_jual' => $value_dt['harga_jual'],
+                    'diskon' =>0,
+                    'keterangan' =>'-',
+                    'penjualan_id' =>'',
+                    'reff' =>'',
+                    'group_id' =>$key_dt+1,
+                    'no_urut' => $no_urut
+                );
+            }
+            $no_urut++;
+        }
+
+        $data_save['penjualan']=array(
+            'no_transaksi'=>$no_transaksi,
+            'tanggal'=>date('Y-m-d'),
+            'user_id_toko' =>$data_post['toko_id'],
+            'user_id_pembeli' =>$data_post['user_id'],
+            'no_ref' =>'0',
+            'lokasi_pengirim' =>'',
+            'lokasi_tujuan' =>'',
+            'status_barang' =>'0',
+            // 'id_penagihan' =>'',
+            // 'no_penagihan' =>'',
+            'jenis_transaksi' =>'FOOD',
+            'ppn' =>'0',
+            'pph' =>'0',
+            'ppnbm' =>'0',
+            'pemesanan' =>'0',
+            'lain_lain' =>'0',
+            'status_review' =>'0',
+            'biaya_aplikasi' =>$data->biaya_aplikasi,
+            'potongan_toko' =>$data->potongan_toko,
+        );
+        $data_save['penjualan_detail']=$detail;
+        try {
+            DB::beginTransaction();
+            $last_id = DB::table('t_penjualan')->insertGetId($data_save['penjualan']);
+            for ($i=0; $i < count($data_save['penjualan_detail']); $i++) 
+            {
+                $data_save['penjualan_detail'][$i]['penjualan_id'] = $last_id;
+            }   
+            DB::table('t_penjualan_detail')->insert($data_save['penjualan_detail']);
+
+            DB::commit();
+        
+            return response([
+                'message' => "User created successfully",
+                'status' => "success"
+            ], 200);
+        } catch (\Exception $exp) {
+            DB::rollBack(); 
+            return response([
+                'message' => $exp->getMessage(),
+                'status' => 'failed'
+            ], 400);
+        }
+    }
+
     public function pecah(Request $request)
     {
         $data = $request->data;
