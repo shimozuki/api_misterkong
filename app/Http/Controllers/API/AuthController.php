@@ -1012,7 +1012,8 @@ class AuthController extends Controller
     }
     public function kirim_otp(Request $request)
     {
-        $no_hp = $request->no_hp;
+        $nohp = $request->no_hp;
+        $no_hp = str_split($request->no_hp) [0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
         $array = ([$no_hp]);
         $cekOtpAttemps = DB::select('CALL misterkong_db_all_histori.get_request_otp_misterkong(?)', $array);
         $statusOtp = $cekOtpAttemps[0]->status_otp;
@@ -1075,7 +1076,7 @@ class AuthController extends Controller
 		$responseBody = json_decode($response);
 		curl_close($ch);
         return response()->json([
-            'success' => false,
+            'success' => true,
             'respon'   => $responseBody,
             'Otp' => $otp
         ], 200);
