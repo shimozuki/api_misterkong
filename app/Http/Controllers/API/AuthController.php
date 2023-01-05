@@ -943,23 +943,23 @@ class AuthController extends Controller
     {
         $email = $request->email;
         $no_hp = str_split($request->no_hp) [0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
-        $cek_no_hp = DB::table('m_userx')->where('no_hp', $no_hp)->Where('status', 1)->get();
-        $cek_email = DB::table('m_userx')->where('email', $email)->Where('status', 1)->get();
+        $cek_no_hp = DB::table('m_userx')->where('no_hp', $no_hp)->where('status', 1)->first();
+        $cek_email = DB::table('m_userx')->where('email', $email)->where('status', 1)->first();
         if (!empty($cek_no_hp)) {
             return response()->json([
                 'success' => false,
                 'msg'   => 'sudah digunakan'
             ], 201);
-        }elseif (!empty($email)) {
+        }elseif (!empty($cek_email)) {
             return response()->json([
                 'success' => false,
-                'msg'   => 'sudah digunakan'
+                'msg'   => 'email sudah digunakan'
             ], 201);
         } else{
             $data = [
-                'kd_grup' => 2,
+                'kd_group' => 2,
                 'nama' => $request->nama,
-                'password' => md5($request->password),
+                'passwd' => md5($request->password),
                 'keterangan' => '-',
                 'no_hp' => $no_hp,
                 'status_phone' => '0',
@@ -967,45 +967,44 @@ class AuthController extends Controller
                 'status_email' => '0',
                 'jenis_user' => '0',
             ];
-            $cek_no_hp_nonaktif = DB::table('m_userx')->where('no_hp', $no_hp)->Where('status', 0);
-            if (!empty($cek_no_hp_nonaktif)) {
-                $simpan = DB::table('m_userx')->update($data);
-            } else {
-                $ex_max_trans = DB::table('m_userx')->select('max(id) as s')->get();
-                $trans = $ex_max_trans;
-                $nomor = $trans['notrans'];
-                if(empty($ex_max_trans))
-                {
-                    $no_trans = 1;
-                }else{
-                    $no_trans = $nomor + 1;
+            $cek_no_hp_nonaktif = DB::table('m_userx')->where('no_hp', $no_hp)->where('status', 0)->first();
+            try {
+                if (!empty($cek_no_hp_nonaktif)) {
+                    $simpan = DB::table('m_userx')->where('no_hp', $no_hp)->update($data);
+                } else {
+                    $ex_max_trans = DB::table('m_userx')->select('id')->orderBy('id', 'desc')->first();
+                    $trans = $ex_max_trans;
+                    $nomor = $trans->id;
+                    if(empty($ex_max_trans))
+                    {
+                        $no_trans = 1;
+                    }else{
+                        $no_trans = $nomor + 1;
+                    }
+                    $ex_max_transkd = DB::table('m_userx')->select('kd_user')->orderBy('kd_user', 'desc')->first();
+                    $transkd = $ex_max_transkd;
+                    $nomorkd = $transkd->kd_user;
+                    $nourut = (int) substr($nomor, -3);
+                    if(empty($ex_max_transkd))
+                    {
+                        $no_transkd = "UAA001";
+                    }else{
+                        $nourut++;
+                        $no_transkd = "UAA".sprintf("%30s", $nourut);
+                    }
+                    $data['id'] = $no_trans;
+                    $data['kd_user'] = $no_transkd;
+                    $simpan = DB::table('m_userx')->insert($data);
                 }
-                $ex_max_transkd = DB::table('m_userx')->select('max(kd_user)')->get();
-                $transkd = $ex_max_transkd;
-                $nomorkd = $transkd['notrans'];
-                $nourut = (int) substr($nomor, -3);
-                if(empty($ex_max_transkd))
-                {
-                    $no_transkd = "UAA001";
-                }else{
-                    $nourut++;
-                    $no_transkd = "UAA".sprintf("%30s", $nourut);
-                }
-                $data['id'] = $no_trans;
-                $data['kd_user'] = $no_transkd;
-                $simpan = DB::table('m_userx')->insert($data);
-            }
-            if($simpan == FALSE)
-            {
+                    return response()->json([
+                        'success' => true,
+                        'msg'   => 'Berhasil insert'
+                    ], 200);
+            } catch (\Throwable $th) {
                 return response()->json([
                     'success' => false,
-                    'msg'   => 'gagal insert'
+                    'msg'   => $th
                 ], 205);
-            }else{
-                return response()->json([
-                    'success' => true,
-                    'msg'   => 'Berhasil insert'
-                ], 200);
             }
             
         }
