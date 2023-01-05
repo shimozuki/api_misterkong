@@ -1010,21 +1010,76 @@ class AuthController extends Controller
             
         }
     }
-    // public function get_ongkir(Request $request)
-    // {
-    //     $prov = $request->provinsi;
-    //     $get_zona_id = DB::table('m_driver_zona_lokasi')->where('lokasi', $prov)->orWhere('lokasi_1', $prov);
-    //     if (empty($get_zona_id)) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'msg'   => 'zona tidak di temukan'
-    //         ], 404);
-    //     }else{
-    //         $zona_id = $request->kd_zona;
-    //         $distance = $request->distance / 1000;
-    //     }
-    //     $zona_driver = new
-    // }
+    public function kirim_otp(Request $request)
+    {
+        $no_hp = $request->no_hp;
+        $array = ([$no_hp]);
+        $cekOtpAttemps = DB::select('CALL misterkong_db_all_histori.get_request_otp_misterkong(?)', $array);
+        $statusOtp = $cekOtpAttemps[0]->status_otp;
+
+        $waktuRequest = date('Y-m-d H:i:s');
+		$timeLimit = date('Y-m-d H:i:s', strtotime("+30 minutes", strtotime($waktuRequest)));
+        
+        if ($statusOtp == '0') {
+            $req_lagi = DB::select('CALL misterkong_db_all_histori.get_request_otp_misterkong(?)', $array);
+            $waktu = $req_lagi[0]->time_limit;
+            return response()->json([
+                'success' => false,
+                'waktu'   => $waktu
+            ], 201);
+        }
+        $from               = ""; //Sender ID or SMS Masking Name, if leave blank, it will use default from telco
+		$apikey             = "dd4cfd6168564ae033110fa7ec0e66fd-4a8acf79-b3da-4063-8368-b8c9d124eb48"; //get your API KEY from our sms dashboard
+		$postUrl            = "https://api.smsviro.com/restapi/sms/1/text/advanced"; # DO NOT CHANGE THIS
+
+		$destination = array("to" => $no_hp);
+		$otp = rand(100000, 999999);
+
+		$message = array(
+			"from" => $from,
+			"destinations" => $destination,
+			"text" => "<#> MisterKong Kode OTP anda adalah " . $otp . ", jangan pernah memberitahukan kode otp ini kepada siapapun"
+		);
+
+        // print_r($message);
+
+		// update histori otp pos
+		$simpanHistory = DB::table("misterkong_db_all_histori.h_misterkong_otp")->insert([
+			"no_hp" => $no_hp,
+			"imei" => "-",
+			"otp" => $otp,
+			"request_at" => $waktuRequest,
+			"keterangan" => "-"
+		]);
+
+		$updateHistory = DB::table("misterkong_db_all_histori.h_log_misterkong_otp")->update([
+			"time_request" => $waktuRequest,
+			"time_limit" => $timeLimit
+		], "no_hp = '$no_hp' AND time_limit < '$waktuRequest'");
+
+		$postData           = array("messages" => array($message));
+		$postDataJson       = json_encode($postData);
+		$ch                 = curl_init();
+
+		curl_setopt($ch, CURLOPT_URL, $postUrl);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', "Accept:application/json", 'Authorization: App ' . $apikey));
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+		curl_setopt($ch, CURLOPT_MAXREDIRS, 2);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $postDataJson);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$response = curl_exec($ch);
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$responseBody = json_decode($response);
+		curl_close($ch);
+        return response()->json([
+            'success' => false,
+            'respon'   => $responseBody,
+            'Otp' => $otp
+        ], 200);
+    }
     public function logout(Request $request)
     {
         $user = $request->user();
@@ -1032,7 +1087,8 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'msg'   => 'Berhasil LogOut'
+            'msg'   => 'Berhasil LogOut', 
+            
         ], 200);
     }
    

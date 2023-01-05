@@ -51,5 +51,6 @@ Route::post('/penolakan', [AuthController::class, 'penolakan']);
 Route::post('/no_penagihan', [AuthController::class, 'no_penagihan']);
 Route::post('/pecah', [AuthController::class, 'pecah']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('kirim_otp', [AuthController::class, 'kirim_otp']);
 
 
