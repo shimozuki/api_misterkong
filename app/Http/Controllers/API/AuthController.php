@@ -943,8 +943,8 @@ class AuthController extends Controller
     {
         $email = $request->email;
         $no_hp = str_split($request->no_hp) [0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
-        $cek_no_hp = DB::table('m_userx')->where('no_hp', $no_hp)->orWhere('status', 1)->get();
-        $cek_email = DB::table('m_userx')->where('email', $email)->orWhere('status', 1)->get();
+        $cek_no_hp = DB::table('m_userx')->where('no_hp', $no_hp)->Where('status', 1)->get();
+        $cek_email = DB::table('m_userx')->where('email', $email)->Where('status', 1)->get();
         if (!empty($cek_no_hp)) {
             return response()->json([
                 'success' => false,
@@ -967,7 +967,7 @@ class AuthController extends Controller
                 'status_email' => '0',
                 'jenis_user' => '0',
             ];
-            $cek_no_hp_nonaktif = DB::table('m_userx')->where('no_hp', $no_hp)->orWhere('status', 0);
+            $cek_no_hp_nonaktif = DB::table('m_userx')->where('no_hp', $no_hp)->Where('status', 0);
             if (!empty($cek_no_hp_nonaktif)) {
                 $simpan = DB::table('m_userx')->update($data);
             } else {
