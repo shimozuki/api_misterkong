@@ -114,6 +114,8 @@ class AuthController extends Controller
                             m_user_company.alamat,
                             m_user_company.id, 
                             m_user_company.company_id,
+                            m_user_company.lat,
+                            m_user_company.lng,
                             nama_usaha, 
                             jml_transaksi,
                             (
@@ -177,7 +179,7 @@ class AuthController extends Controller
         $lat = $request->lat ?? -8.5769951;
         $lng = $request->lng ?? 116.1004894;
 
-        $query = "SELECT m_user_company.alamat, m_user_company.id,m_user_company.nama_usaha,m_user_company.company_id,status_buka_toko,
+        $query = "SELECT  m_user_company.lat, m_user_company.lng, m_user_company.alamat, m_user_company.id,m_user_company.nama_usaha,m_user_company.company_id,status_buka_toko,
 		(
 				3959 * acos (
 					cos ( radians(koordinat_lat) )
@@ -248,7 +250,7 @@ class AuthController extends Controller
                 'msg'   => 'token kosong'
             ], 404);
         } else {
-            $query = "select m_user_company.id, m_user_company.nama_usaha, 
+            $query = "select m_user_company.id, m_user_company.nama_usaha,  m_user_company.lat, m_user_company.lng,
             m_user_company.company_id, m_kategori_usaha.nama 
             from t_favorite_food inner join m_user_company on m_user_company.id = t_favorite_food.kd_toko
              inner join m_kategori_usaha on m_user_company.kategori_usaha = m_kategori_usaha.kd_kategori_usaha 
