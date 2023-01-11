@@ -105,6 +105,7 @@ class AuthController extends Controller
             'data'      => $restos
         ], 200);
     }
+    
     public function terlaris(Request $request)
     {
         $offset = $request->offset ?? 0;
@@ -119,7 +120,7 @@ class AuthController extends Controller
                             nama_usaha, 
                             jml_transaksi,
                             (
-                            3959 * ACOS (COS (RADIANS(koordinat_lat))
+                            6378 * ACOS (COS (RADIANS(koordinat_lat))
                             * COS(RADIANS(" . $lat . "))
                             * COS(RADIANS(" . $lng . ") - RADIANS(koordinat_lng))
                             + SIN (RADIANS(koordinat_lat))
@@ -181,7 +182,7 @@ class AuthController extends Controller
 
         $query = "SELECT  m_user_company.koordinat_lat, m_user_company.koordinat_lng, m_user_company.alamat, m_user_company.id,m_user_company.nama_usaha,m_user_company.company_id,status_buka_toko,
 		(
-				3959 * acos (
+				6378 * acos (
 					cos ( radians(koordinat_lat) )
 					* cos( radians( " . $lat . ") )
 					* cos( radians( " . $lng . ") - radians(koordinat_lng) )
@@ -282,7 +283,7 @@ class AuthController extends Controller
             ], 404);
         } else {
             $query = "SELECT m_user_company.id as id,m_user_company.company_id, m_user_company.nama_usaha, header, alamat, status_buka_toko, koordinat_lat, koordinat_lng ,(
-                3959 * acos (
+                6378 * acos (
                     cos ( radians(koordinat_lat) )
                     * cos( radians( " . $lat . ") )
                     * cos( radians( " . $long . ") - radians(koordinat_lng) )
@@ -464,7 +465,7 @@ class AuthController extends Controller
                 (
                   SELECT *,
                   ROUND(
-                    3959 * ACOS(
+                    6378 * ACOS(
                       COS(RADIANS(koordinat_lat)) * 
                       COS(RADIANS($lat)) * 
                       COS(RADIANS($lng)- 
@@ -901,7 +902,7 @@ class AuthController extends Controller
     //     md.hp1 AS NO_HP,
     //     mdk.nomor_plat AS PLAT_MOTOR,
     //     ROUND(
-    //         3959 * ACOS(
+    //         6378 * ACOS(
     //             COS(RADIANS('" . $lat . "')) * COS(RADIANS( mdll.loc_lat )) * 
     //             COS(RADIANS( mdll.loc_lng )- RADIANS( '" . $lng . "' )) + 
     //             SIN(RADIANS( '" . $lat . "' )) * SIN(RADIANS( mdll.loc_lat )) 
