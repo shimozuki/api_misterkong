@@ -568,14 +568,7 @@ class AuthController extends Controller
             ], 400);
         } else {
             $zona_id = $get_zona->kd_zona;
-            $distance = $jarak / 1000;
-            $zona_driver = DB::table('m_driver_zona')->select('*')->where('zona_id', '=', $zona_id, 'AND', 'app_id', '=', $app_id, 'AND', 'jenis_kendaraan_id', '=', $jenis_kndr)->get();
-            foreach ($zona_driver as $key => $value) {
-                $jarak_pertama = $value->jarak_pertama;
-                $feemibawah = $value->fee_minim_bawah;
-                $batasbawah = $value->batas_bawah;
-                $biyaya = $value->biaya1;
-            }
+            $zona_driver = DB::table('m_driver_zona')->select('*')->where('zona_id', $zona_id)->where('app_id', $app_id)->where('jenis_kendaraan_id', $jenis_kndr)->first();
             if (empty($zona_id)) {
                 return response()->json([
                     'success' => false,
@@ -583,15 +576,15 @@ class AuthController extends Controller
                     'data'   => []
                 ], 400);
             }
-            $gap = $distance - $jarak_pertama;
+            $gap = $jarak - $zona_driver->jarak_pertama;
             if ($gap <= 0) {
                 return response()->json([
                     'success' => true,
                     'message' => 'success',
-                    'ongkir'   => $feemibawah + $biyaya
+                    'ongkir'   => $zona_driver->fee_minim_bawah + $zona_driver->biaya1
                 ], 200);
             }
-            $ongkir = $feemibawah + ($gap * $batasbawah) + $biyaya;
+            $ongkir = $zona_driver->fee_minim_bawah + ($gap * $zona_driver->batas_bawah) + $zona_driver->biaya1;
             return response()->json([
                 'success' => true,
                 'message' => 'success',
