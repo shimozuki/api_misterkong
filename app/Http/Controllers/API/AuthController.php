@@ -803,7 +803,7 @@ class AuthController extends Controller
             DB::commit();
         
             return response([
-                'message' => "User created successfully",
+                'message' => "Created successfully",
                 'status' => "success"
             ], 200);
         } catch (\Exception $exp) {
