@@ -1087,5 +1087,49 @@ class AuthController extends Controller
             
         ], 200);
     }
-   
+   public function notifOrder()
+   {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $potong  =  DB::table('m_potongan')->where('id', 2)->first();
+        $data['potongan_rider'] = $potong->jenis == '1' ? $potong->nominal : ($potong->nominal / 100 * $data['ongkos']);
+        $data['jenis_notif']  = 9;
+
+        $destinasi = [
+            'ios' => [
+              'to' => '/topics/ios_general',
+              'headers' => [
+                "authorization:key=AAAAFLVl2_0:APA91bG9ce3PpSlf4cRjbbRIglt-6JsK_IcwxpXXkwC2oingJDVFSxncZ8PY3bNbfR8aZsIiq51nzQACLdhMQm1c7rTJciH_owB6mVUSM3gsrNc-ft0BxIluO6oEBN5-M1-GwNZBbADC",
+                'Content-Type: application/json'
+              ]
+            ],
+            'android' =>  [
+              'to' => '/topics/kongRiderFCM',
+              'headers' => [
+                'Authorization:key=AAAAJrZwZQg:APA91bEp4BYq1kZcVwUyuh02a_s5F3txxf_CJHNbvdwsdjs6qwdHuWIiS3BKN7ETR3gtQkVZgHebKCH4C6N-QaHeJTEC5m8pMT0MDD5i6oG2bqPwbPT3XR3dY9h_zku1TtamNt9_Tn9q',
+                'Content-Type: application/json'
+              ]
+            ],
+          ];
+
+          foreach ($destinasi as $key => $value) {
+            $payload = array(
+              'to' => $value['to'],
+              'priority' => 'high',
+              "mutable_content" => true,
+              'data' => $data,
+            );
+      
+            $headers = $value['headers'];
+      
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            $result = curl_exec($ch);
+            curl_close($ch);
+          }
+   }
 }
