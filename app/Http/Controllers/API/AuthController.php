@@ -802,7 +802,7 @@ class AuthController extends Controller
 
             DB::table('t_pengiriman')->insert([
                 'no_penjualan' => $penjualanID,
-                'nama_tujuan' => $data_post['datatrans']['nama'],
+                'nama_tujuan' => $data_post['data_trans']['nama'],
                 'origin_koordinat_lat' => $data_post['restoLat'],
                 'origin_koordinat_lng' => $data_post['restoLng'],
                 'dest_alamat' => $data_post['deliveryAddress'],
