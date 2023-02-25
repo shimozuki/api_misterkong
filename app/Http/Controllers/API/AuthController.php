@@ -712,7 +712,7 @@ class AuthController extends Controller
         $detail=[];
         $no_transaksi = $this->no_transaksi($data_post['user_id']);
         $misterkong = new MisterkongMp;
-        $data = MisterkongMp::getDataCheckOut($data_post['toko_id']);   
+        $data = $misterkong->getDataCheckOut($data_post['toko_id']);   
 
 
         $no_urut=1;
@@ -791,6 +791,7 @@ class AuthController extends Controller
             'potongan_toko' =>$data->potongan_toko,
         );
         $data_save['penjualan_detail']=$detail;
+        $getlatlong = DB::table('m_user_company')->select('koordinat_lat', 'koordinat_lng')->where('id', $data_post['toko_id'])->first();
         try {
             DB::beginTransaction();
             $last_id = DB::table('t_penjualan')->insertGetId($data_save['penjualan']);
@@ -799,17 +800,17 @@ class AuthController extends Controller
             {
                 $data_save['penjualan_detail'][$i]['penjualan_id'] = $last_id;
             }   
-
+            $lat = explode(',', $data_post['tujuanLatlng']);
             DB::table('t_pengiriman')->insert([
                 'no_penjualan' => $penjualanID,
                 'nama_tujuan' => $data_post['data_trans'][0]['nama'],
-                'origin_koordinat_lat' => $data_post['restoLat'],
-                'origin_koordinat_lng' => $data_post['restoLng'],
-                'dest_alamat' => $data_post['deliveryAddress'],
-                'dest_koordinat_lat' => $data_post['deliveryLat'],
-                'dest_koordinat_lng' => $data_post['deliveryLng'],
+                'origin_koordinat_lat' => $getlatlong->koordinat_lat,
+                'origin_koordinat_lng' => $getlatlong->koordinat_lng,
+                'dest_alamat' => $data_post['alamatTujuan'],
+                'dest_koordinat_lat' => $lat[0],
+                'dest_koordinat_lng' => $lat[1],
                 'status_pembayaran' => 0,
-                'ongkir' => $data_post['ongkir'],
+                'ongkir' => $data_post['ongkirFee'],
                 'kurir' => 'DRIVER',
                 'layanan' => 'FOOD',
                 'dest_keterangan' => $data_post['deliveryNotes'] ?? "-",
