@@ -843,7 +843,8 @@ class AuthController extends Controller
             return response([
                 'message' => "Created successfully",
                 'status' => "success",
-                'no_transaksi' => $no_transaksi
+                'no_transaksi' => $no_transaksi,
+                'no_penjualan ' => $penjualanID
             ], 200);
         } catch (\Exception $exp) {
             DB::rollBack(); 
