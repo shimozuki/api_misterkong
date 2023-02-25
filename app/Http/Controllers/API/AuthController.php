@@ -711,7 +711,7 @@ class AuthController extends Controller
         $data_save=[];
         $detail=[];
         $no_transaksi = $this->no_transaksi($data_post['user_id']);
-
+        $misterkong = new MisterkongMp;
         $data = MisterkongMp::getDataCheckOut($data_post['toko_id']);   
 
 
@@ -794,10 +794,48 @@ class AuthController extends Controller
         try {
             DB::beginTransaction();
             $last_id = DB::table('t_penjualan')->insertGetId($data_save['penjualan']);
+            $penjualanID = DB::getPdo()->lastInsertId();
             for ($i=0; $i < count($data_save['penjualan_detail']); $i++) 
             {
                 $data_save['penjualan_detail'][$i]['penjualan_id'] = $last_id;
             }   
+
+            DB::table('t_pengiriman')->insert([
+                'no_penjualan' => $penjualanID,
+                'nama_tujuan' => $data_post['nama'],
+                'origin_koordinat_lat' => $data_post['restoLat'],
+                'origin_koordinat_lng' => $data_post['restoLng'],
+                'dest_alamat' => $data_post['deliveryAddress'],
+                'dest_koordinat_lat' => $data_post['deliveryLat'],
+                'dest_koordinat_lng' => $data_post['deliveryLng'],
+                'status_pembayaran' => 0,
+                'ongkir' => $data_post['ongkir'],
+                'kurir' => 'DRIVER',
+                'layanan' => 'FOOD',
+                'dest_keterangan' => $data_post['deliveryNotes'] ?? "-",
+                'date_add' => date('Y-m-d H:i:s'),
+            ]);
+    
+            // insert penagihan
+            $nopenagihan = $this->no_penagihan();
+            DB::table('t_penagihan')->insert([
+                'no_penagihan' => $nopenagihan,
+                'total_pembayaran' => $data_post['total'],
+                'total_diskon' => $data_post['diskon'],
+                'total_ongkir' => $data_post['ongkir'],
+                'jenis_pembayaran' => $data_post['paymentMethod'],
+                'status' => 0,
+            ]);
+            $penagihanId = DB::getPdo()->lastInsertId();
+            
+            DB::table('t_penagihan_detail')->insert([
+                'no_penagihan' => $penagihanId,
+                'no_transaksi_penjualan' => $penjualanID,
+                'total' => $data_post['total'],
+                'diskon' => $data_post['diskon'],
+                'ongkir' => $data_post['ongkir'],
+              ]);
+              
             DB::table('t_penjualan_detail')->insert($data_save['penjualan_detail']);
 
             DB::commit();
