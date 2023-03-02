@@ -824,26 +824,26 @@ class AuthController extends Controller
             }else {
                 $total = $data_post['ongkirFee'] + $data_post['data_trans'][0]['harga_jual'] * $data_post['diskon'] / 100;
             }
-            // $data_post['paymentMethod'] = "TUNAI";
-            // $data_post['status'] = 0;
-            // $nopenagihan = $this->no_penagihan();
-            // DB::table('t_penagihan')->insert([
-            //     'no_penagihan' => $nopenagihan,
-            //     'total_pembayaran' => $total,
-            //     'total_diskon' => $data_post['diskon'],
-            //     'total_ongkir' => $data_post['ongkirFee'],
-            //     'jenis_pembayaran' => $data_post['paymentMethod'],
-            //     'status' => $data_post['status'] ,
-            // ]);
-            // $penagihanId = DB::getPdo()->lastInsertId();
+            $data_post['paymentMethod'] = "TUNAI";
+            $data_post['status'] = 0;
+            $nopenagihan = $this->no_penagihan();
+            DB::table('t_penagihan')->insert([
+                'no_penagihan' => $nopenagihan[0]->notrans,
+                'total_pembayaran' => $total,
+                'total_ongkir' => $data_post['ongkirFee'],
+                'total_diskon' => $data_post['diskon'],
+                'jenis_pembayaran' => "TUNAI",
+                'status' => 0,
+            ]);
+            $penagihanId = DB::getPdo()->lastInsertId();
             
-            // DB::table('t_penagihan_detail')->insert([
-            //     'no_penagihan' => $penagihanId,
-            //     'no_transaksi_penjualan' => $penjualanID,
-            //     'total' => $data_post['total'],
-            //     'diskon' => $data_post['diskon'],
-            //     'ongkir' => $data_post['ongkirFee'],
-            //   ]);
+            DB::table('t_penagihan_detail')->insert([
+                'no_penagihan' => $penagihanId,
+                'no_transaksi_penjualan' => $penjualanID,
+                'total' => $total,
+                'diskon' => $data_post['diskon'],
+                'ongkir' => $data_post['ongkirFee'],
+              ]);
               
             DB::table('t_penjualan_detail')->insert($data_save['penjualan_detail']);
 
@@ -853,7 +853,7 @@ class AuthController extends Controller
                 'message' => "Created successfully",
                 'status' => "success",
                 'no_transaksi' => $no_transaksi,
-                'no_penjualan ' => $penjualanID
+                'no_penjualan ' => $penjualanID,
             ], 200);
         } catch (\Exception $exp) {
             DB::rollBack(); 
