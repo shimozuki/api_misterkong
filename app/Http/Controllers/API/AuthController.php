@@ -790,6 +790,7 @@ class AuthController extends Controller
             'biaya_aplikasi' =>$data->biaya_aplikasi,
             'potongan_toko' =>$data->potongan_toko,
         );
+        $biyaya_aplikasi = DB::table('m_potongan')->select('nominal')->where('id', 1)->first();
         $data_save['penjualan_detail']=$detail;
         $getlatlong = DB::table('m_user_company')->select('koordinat_lat', 'koordinat_lng')->where('id', $data_post['toko_id'])->first();
         try {
@@ -854,6 +855,7 @@ class AuthController extends Controller
                 'status' => "success",
                 'no_transaksi' => $no_transaksi,
                 'no_penjualan ' => $penjualanID,
+                'biyayaaplikasi' => $biyaya_aplikasi->nominal
             ], 200);
         } catch (\Exception $exp) {
             DB::rollBack(); 
