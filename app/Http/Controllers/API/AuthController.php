@@ -1143,7 +1143,7 @@ class AuthController extends Controller
         $data = json_decode(file_get_contents('php://input'), true);
         $potong  =  DB::table('m_potongan')->where('id', 2)->first();
         $data['potongan_rider'] = $potong->jenis == '1' ? $potong->nominal : ($potong->nominal / 100 * $data['ongkos']);
-        $data['jenis_notif']  = 5;
+        $data['jenis_notif']  = 9;
 
         $destinasi = [
             'ios' => [
