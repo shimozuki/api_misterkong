@@ -1195,7 +1195,7 @@ class AuthController extends Controller
             DB::table('t_pengiriman')->where('no_penjualan', $id_pesanan)->update(['id_driver' => $driver, 'no_resi' => $resi]);
             DB::table('t_pengiriman_status')->insert(['no_resi' => $resi, 'status' => 0, 'keterangan' => 'pesananmu sudah di terima nih, tunggu drivernya sampai ya']);
             $user = DB::table('t_penjualan')->select('user_id_pembeli')->where('id', $id_pesanan)->first();
-            DB::table('t_chat_driver')->insert(['no_transaksi' => $resi, 'send_driver' => $driver, 'send_user' => $user, 'read_driver' => 1, 'read_user' => 0, 'del_driver', 0, 'del_user' => 0, 'up_time' => $date]);
+            DB::table('t_chat_driver')->insert(['no_transaksi' => $resi, 'send_driver' => $driver, 'send_user' => $user->user_id_pembeli, 'read_driver' => 1, 'up_time' => $date]);
             DB::table('t_chat_driver_detail')->insert(['message_id' => $resi, 'message' => 'Hai! Pesananmu sudah diterima driver, driver akan segera meluncur ke restoran ya', 'sender' => 'driver', 'time_send' => $date, 'time_receive' => null, 'time_sent' => null, 'time_read' => $date, 'url' => null, 'status_delete_to' => 0, 'status_delete_by' => 0]);
             DB::commit();
             $payload = array(
@@ -1204,7 +1204,7 @@ class AuthController extends Controller
 				"mutable_content" => true,
 				'data' => array(
 					"id_driver" => $driver,
-					"id_cust" => $user,
+					"id_cust" => $user->user_id_pembeli,
 					"msg" => 'Hai! Pesananmu sudah diterima driver, driver akan segera meluncur ke restoran ya'
 				)
 			);
@@ -1221,6 +1221,10 @@ class AuthController extends Controller
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
 			$result = curl_exec($ch);
 			curl_close($ch);
+            return response([
+                'message' => 'Berhasil mengirim Notif',
+                'status' => 'Success'
+            ], 400);
         } catch (\Exception $exp) {
             DB::rollBack(); 
             return response([
