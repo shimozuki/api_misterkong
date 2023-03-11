@@ -1260,7 +1260,62 @@ class AuthController extends Controller
             DB::beginTransaction();
             DB::table('misterkong_'.$company_id->company_id.'.t_penjualan_order')->insert($dataOrder);
             DB::table('misterkong_'.$company_id->company_id.'.t_penjualan_order_detail')->insert($detailOrder);
+            $updateSaldo = $this->http_request("https://misterkong.com/back_end_mp/api_misterkong/saldo/UpdateSaldo.php?no_transaksi=" .$no_transaksi. "&status=4");
             DB::commit();
+            $data = array(
+                "title" => "KONGMeal Order",
+                "body" => $nama_customer . ' | ' . $no_transaksi,
+                "no_transaksi" => $no_transaksi,
+                "id_order" => $id_pesanan,
+                "id_driver" => $driver,
+                "nama_driver" => $rider->nama_depan,
+                "pembeli" => $nama_customer,
+                "comp_id" => $company_id->company_id,
+                "pesanan" => $pesanan,
+                "pin" => $pin,
+                "jenis_notif" => 1,
+                'isi' => 'hahahah',
+                'noHp' => $rider->hp1,
+                'keterangan' => $keteranganPesanan,
+                'potongan_toko' => $potonganToko
+            );
+            $destinasi = [
+                'ios' => [
+                    'to' => '/topics/ios_general',
+                    'headers' => [
+                        "authorization:key=AAAAFLVl2_0:APA91bG9ce3PpSlf4cRjbbRIglt-6JsK_IcwxpXXkwC2oingJDVFSxncZ8PY3bNbfR8aZsIiq51nzQACLdhMQm1c7rTJciH_owB6mVUSM3gsrNc-ft0BxIluO6oEBN5-M1-GwNZBbADC",
+                        'Content-Type: application/json'
+                    ]
+                ],
+                'android' =>  [
+                    'to' => '/topics/kongpos',
+                    'headers' => [
+                        'Authorization:key=AAAAf50odws:APA91bERBP6tLNfAWz_aeNhmXjbOOItI2aZ_bZEy1xNX47SWCr8LbrfNVQfuVJ8xYT7_mCFKRn6pBW7_qO-fG5qFNfIU-8nfWm1-M_zhezLK12dlsIeFi8ZfYeizEhPVQTdIbGj0DtUt',
+                        'Content-Type: application/json'
+                    ]
+                ],
+            ];
+    
+            $msg = [];
+            foreach ($destinasi as $key => $value) {
+                $payload = array(
+                    'to' => $value['to'],
+                    'priority' => 'high',
+                    "mutable_content" => true,
+                    'data' => $data
+                );
+    
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $value['headers']);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+                $result = curl_exec($ch);
+                curl_close($ch);
+                $msg[] = $result;
+            }
             return response([
                 'message' => 'Pesanan Berhasil',
                 'status' => 'Success'
