@@ -1234,4 +1234,25 @@ class AuthController extends Controller
         }
         
    }
+
+   public function pembatalan(Request $request)
+   {
+        $id_penjualan = $request->no_penjualan;
+        $id_driver = $request->id_rider;
+        $tanggal = date('Y-m-d H:i:s');
+        $status = $request->status;
+        try {
+            DB::table('t_penjualan_driver_batal')->insert(['id_penjualan' => $id_penjualan, 'id_driver' => $id_driver, 'tanggal' => $tanggal, 'status' => $status]);
+            return response([
+                'message' => 'Pembatalan Berhasil',
+                'status' => 'Success'
+            ], 400);
+        } catch (\Exception $exp) {
+            DB::rollBack(); 
+            return response([
+                'message' => $exp->getMessage(),
+                'status' => 'failed'
+            ], 400);
+        }
+   }
 }

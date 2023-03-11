@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\FormController;
 use App\Http\Controllers\API\ScoreController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,5 +55,6 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/kirim_otp', [AuthController::class, 'kirim_otp']);
 Route::post('/kirim_notif', [AuthController::class, 'notifOrder']);
 Route::post('/up_driver', [AuthController::class, 'up_driver']);
+Route::post('/pembatalan', [AuthController::class, 'pembatalan']);
 
 
