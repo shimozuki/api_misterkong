@@ -105,7 +105,7 @@ class AuthController extends Controller
             'data'      => $restos
         ], 200);
     }
-    
+
     public function terlaris(Request $request)
     {
         $offset = $request->offset ?? 0;
@@ -416,10 +416,10 @@ class AuthController extends Controller
                         $detail = [];
                         for ($i = 0; $i < count($kd_detail); $i++) {
                             $detail[] = [
-                                'kd_varian_detail' => $kd_detail[$i], 
-                                'nama' => $namadetail[$i], 
-                                'harga' => floatval($hargad[$i]), 
-                                'keterangan' => $keterangand[$i], 
+                                'kd_varian_detail' => $kd_detail[$i],
+                                'nama' => $namadetail[$i],
+                                'harga' => floatval($hargad[$i]),
+                                'keterangan' => $keterangand[$i],
                                 'reff' => intval($reffd[$i])
                             ];
                         }
@@ -643,7 +643,7 @@ class AuthController extends Controller
             $penjualanID = DB::getPdo()->lastInsertId();
             $oreder = $test[0]['order'];
             foreach ($oreder as $key => $value) {
-                DB::table('t_penjualan_detail')->insert( [
+                DB::table('t_penjualan_detail')->insert([
                     'no_transaksi'  => $no_transaksi,
                     'item_id'       => $value['item_id'],
                     'qty'           => $value['qty'],
@@ -653,7 +653,7 @@ class AuthController extends Controller
                     'penjualan_id'  => $penjualanID,
                 ]);
             }
-    
+
             DB::table('t_pengiriman')->insert([
                 'no_penjualan' => $penjualanID,
                 'nama_tujuan' => $test[0]['nama'],
@@ -669,7 +669,7 @@ class AuthController extends Controller
                 'dest_keterangan' => $test[0]['deliveryNotes'] ?? "-",
                 'date_add' => date('Y-m-d H:i:s'),
             ]);
-    
+
             // insert penagihan
             $nopenagihan = $this->no_penagihan();
             DB::table('t_penagihan')->insert([
@@ -681,22 +681,22 @@ class AuthController extends Controller
                 'status' => 0,
             ]);
             $penagihanId = DB::getPdo()->lastInsertId();
-            
+
             DB::table('t_penagihan_detail')->insert([
                 'no_penagihan' => $penagihanId,
                 'no_transaksi_penjualan' => $penjualanID,
                 'total' => $test[0]['total'],
                 'diskon' => $test[0]['diskon'],
                 'ongkir' => $test[0]['ongkir'],
-              ]);
-    
-              DB::commit();
-              return response([
+            ]);
+
+            DB::commit();
+            return response([
                 'message' => "created successfully",
                 'status' => "success"
             ], 200);
         } catch (\Exception $exp) {
-            DB::rollBack(); 
+            DB::rollBack();
             return response([
                 'message' => $exp->getMessage(),
                 'status' => 'failed'
@@ -707,100 +707,98 @@ class AuthController extends Controller
     public function chekout(Request $request)
     {
 
-        $data_post=$request->all();
-        $data_save=[];
-        $detail=[];
+        $data_post = $request->all();
+        $data_save = [];
+        $detail = [];
         $no_transaksi = $this->no_transaksi($data_post['user_id']);
         $misterkong = new MisterkongMp;
-        $data = $misterkong->getDataCheckOut($data_post['toko_id']);   
+        $data = $misterkong->getDataCheckOut($data_post['toko_id']);
 
 
-        $no_urut=1;
+        $no_urut = 1;
         foreach ($data_post['data_trans'] as $key_dt => $value_dt) {
-            if (!empty($value_dt['data_varian']))  {
-                
-                $detail[]=array(
+            if (!empty($value_dt['data_varian'])) {
+
+                $detail[] = array(
                     'no_transaksi' => $no_transaksi,
-                    'item_id' =>$value_dt['idbrg'],
+                    'item_id' => $value_dt['idbrg'],
                     'qty' => $value_dt['qty'],
                     'harga_jual' => $value_dt['harga_jual'],
-                    'diskon' =>0,
-                    'keterangan' =>'-',
-                    'penjualan_id' =>'',
-                    'reff' =>'',
-                    'group_id' =>$key_dt+1,
+                    'diskon' => 0,
+                    'keterangan' => '-',
+                    'penjualan_id' => '',
+                    'reff' => '',
+                    'group_id' => $key_dt + 1,
                     'no_urut' => $no_urut
                 );
 
                 foreach ($value_dt['data_varian'] as $key_varian => $value_varian) {
-                    $barang_id_reff=$data->id;
+                    $barang_id_reff = $data->id;
                     if (!empty($value_varian['idBrg'])) {
-                        $barang_id_reff=$value_varian['idBrg'];
+                        $barang_id_reff = $value_varian['idBrg'];
                     }
-                    $detail[]=array(
+                    $detail[] = array(
                         'no_transaksi' => $no_transaksi,
-                        'item_id'=>$barang_id_reff,
+                        'item_id' => $barang_id_reff,
                         'qty' => $value_dt['qty'],
                         'harga_jual' => $value_varian['harga'],
-                        'diskon' =>0,
-                        'keterangan' =>$value_varian['varNama'],
-                        'penjualan_id' =>'',
-                        'reff' =>$value_varian['reff'],
-                        'group_id' =>$key_dt+1,
+                        'diskon' => 0,
+                        'keterangan' => $value_varian['varNama'],
+                        'penjualan_id' => '',
+                        'reff' => $value_varian['reff'],
+                        'group_id' => $key_dt + 1,
                         'no_urut' => $no_urut
                     );
                     $no_urut++;
                 }
-                
-            }else{
-                $detail[]=array(
+            } else {
+                $detail[] = array(
                     'no_transaksi' => $no_transaksi,
-                    'item_id' =>$value_dt['idbrg'],
+                    'item_id' => $value_dt['idbrg'],
                     'qty' => $value_dt['qty'],
                     'harga_jual' => $value_dt['harga_jual'],
-                    'diskon' =>0,
-                    'keterangan' =>'-',
-                    'penjualan_id' =>'',
-                    'reff' =>'',
-                    'group_id' =>$key_dt+1,
+                    'diskon' => 0,
+                    'keterangan' => '-',
+                    'penjualan_id' => '',
+                    'reff' => '',
+                    'group_id' => $key_dt + 1,
                     'no_urut' => $no_urut
                 );
             }
             $no_urut++;
         }
 
-        $data_save['penjualan']=array(
-            'no_transaksi'=>$no_transaksi,
-            'tanggal'=>date('Y-m-d'),
-            'user_id_toko' =>$data_post['toko_id'],
-            'user_id_pembeli' =>$data_post['user_id'],
-            'no_ref' =>'0',
-            'lokasi_pengirim' =>'',
-            'lokasi_tujuan' =>'',
-            'status_barang' =>'0',
+        $data_save['penjualan'] = array(
+            'no_transaksi' => $no_transaksi,
+            'tanggal' => date('Y-m-d'),
+            'user_id_toko' => $data_post['toko_id'],
+            'user_id_pembeli' => $data_post['user_id'],
+            'no_ref' => '0',
+            'lokasi_pengirim' => '',
+            'lokasi_tujuan' => '',
+            'status_barang' => '0',
             // 'id_penagihan' =>'',
             // 'no_penagihan' =>'',
-            'jenis_transaksi' =>'FOOD',
-            'ppn' =>'0',
-            'pph' =>'0',
-            'ppnbm' =>'0',
-            'pemesanan' =>'0',
-            'lain_lain' =>'0',
-            'status_review' =>'0',
-            'biaya_aplikasi' =>$data->biaya_aplikasi,
-            'potongan_toko' =>$data->potongan_toko,
+            'jenis_transaksi' => 'FOOD',
+            'ppn' => '0',
+            'pph' => '0',
+            'ppnbm' => '0',
+            'pemesanan' => '0',
+            'lain_lain' => '0',
+            'status_review' => '0',
+            'biaya_aplikasi' => $data->biaya_aplikasi,
+            'potongan_toko' => $data->potongan_toko,
         );
         $biyaya_aplikasi = DB::table('m_potongan')->select('nominal')->where('id', 1)->first();
-        $data_save['penjualan_detail']=$detail;
+        $data_save['penjualan_detail'] = $detail;
         $getlatlong = DB::table('m_user_company')->select('koordinat_lat', 'koordinat_lng')->where('id', $data_post['toko_id'])->first();
         try {
             DB::beginTransaction();
             $last_id = DB::table('t_penjualan')->insertGetId($data_save['penjualan']);
             $penjualanID = DB::getPdo()->lastInsertId();
-            for ($i=0; $i < count($data_save['penjualan_detail']); $i++) 
-            {
+            for ($i = 0; $i < count($data_save['penjualan_detail']); $i++) {
                 $data_save['penjualan_detail'][$i]['penjualan_id'] = $last_id;
-            }   
+            }
             $lat = explode(',', $data_post['tujuanLatlng']);
             DB::table('t_pengiriman')->insert([
                 'no_penjualan' => $penjualanID,
@@ -817,12 +815,12 @@ class AuthController extends Controller
                 'dest_keterangan' => $data_post['deliveryNotes'] ?? "-",
                 'date_add' => date('Y-m-d H:i:s'),
             ]);
-    
+
             // insert penagihan
             if (empty($data_post['data_trans'][0]['diskon'])) {
                 $total = $data_post['ongkirFee'] + $data_post['data_trans'][0]['harga_jual'];
                 $data_post['diskon'] = 0;
-            }else {
+            } else {
                 $total = $data_post['ongkirFee'] + $data_post['data_trans'][0]['harga_jual'] * $data_post['diskon'] / 100;
             }
             $data_post['paymentMethod'] = "TUNAI";
@@ -837,19 +835,19 @@ class AuthController extends Controller
                 'status' => 0,
             ]);
             $penagihanId = DB::getPdo()->lastInsertId();
-            
+
             DB::table('t_penagihan_detail')->insert([
                 'no_penagihan' => $penagihanId,
                 'no_transaksi_penjualan' => $penjualanID,
                 'total' => $total,
                 'diskon' => $data_post['diskon'],
                 'ongkir' => $data_post['ongkirFee'],
-              ]);
-              
+            ]);
+
             DB::table('t_penjualan_detail')->insert($data_save['penjualan_detail']);
 
             DB::commit();
-        
+
             return response([
                 'message' => "Created successfully",
                 'status' => "success",
@@ -858,7 +856,7 @@ class AuthController extends Controller
                 'biyayaaplikasi' => $biyaya_aplikasi->nominal
             ], 200);
         } catch (\Exception $exp) {
-            DB::rollBack(); 
+            DB::rollBack();
             return response([
                 'message' => $exp->getMessage(),
                 'status' => 'failed'
@@ -874,7 +872,6 @@ class AuthController extends Controller
         return response([
             'message' => $array
         ], 400);
-
     }
     public function no_penagihan()
     {
@@ -989,7 +986,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $email = $request->email;
-        $no_hp = str_split($request->no_hp) [0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
+        $no_hp = str_split($request->no_hp)[0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
         $cek_no_hp = DB::table('m_userx')->where('no_hp', $no_hp)->where('status', 1)->first();
         $cek_email = DB::table('m_userx')->where('email', $email)->where('status', 1)->first();
         if (!empty($cek_no_hp)) {
@@ -997,12 +994,12 @@ class AuthController extends Controller
                 'success' => false,
                 'msg'   => 'sudah digunakan'
             ], 201);
-        }elseif (!empty($cek_email)) {
+        } elseif (!empty($cek_email)) {
             return response()->json([
                 'success' => false,
                 'msg'   => 'email sudah digunakan'
             ], 201);
-        } else{
+        } else {
             $data = [
                 'kd_group' => 2,
                 'nama' => $request->nama,
@@ -1022,51 +1019,48 @@ class AuthController extends Controller
                     $ex_max_trans = DB::table('m_userx')->select('id')->orderBy('id', 'desc')->first();
                     $trans = $ex_max_trans;
                     $nomor = $trans->id;
-                    if(empty($ex_max_trans))
-                    {
+                    if (empty($ex_max_trans)) {
                         $no_trans = 1;
-                    }else{
+                    } else {
                         $no_trans = $nomor + 1;
                     }
                     $ex_max_transkd = DB::table('m_userx')->select('kd_user')->orderBy('kd_user', 'desc')->first();
                     $transkd = $ex_max_transkd;
                     $nomorkd = $transkd->kd_user;
                     $nourut = (int) substr($nomor, -3);
-                    if(empty($ex_max_transkd))
-                    {
+                    if (empty($ex_max_transkd)) {
                         $no_transkd = "UAA001";
-                    }else{
+                    } else {
                         $nourut++;
-                        $no_transkd = "UAA".sprintf("%30s", $nourut);
+                        $no_transkd = "UAA" . sprintf("%30s", $nourut);
                     }
                     $data['id'] = $no_trans;
                     $data['kd_user'] = $no_transkd;
                     $simpan = DB::table('m_userx')->insert($data);
                 }
-                    return response()->json([
-                        'success' => true,
-                        'msg'   => 'Berhasil insert'
-                    ], 200);
+                return response()->json([
+                    'success' => true,
+                    'msg'   => 'Berhasil insert'
+                ], 200);
             } catch (\Throwable $th) {
                 return response()->json([
                     'success' => false,
                     'msg'   => $th
                 ], 205);
             }
-            
         }
     }
     public function kirim_otp(Request $request)
     {
         $nohp = $request->no_hp;
-        $no_hp = str_split($request->no_hp) [0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
+        $no_hp = str_split($request->no_hp)[0] === '0' ? '62' . substr($request->no_hp, 1) : $request->no_hp;
         $array = ([$no_hp]);
         $cekOtpAttemps = DB::select('CALL misterkong_db_all_histori.get_request_otp_misterkong(?)', $array);
         $statusOtp = $cekOtpAttemps[0]->status_otp;
 
         $waktuRequest = date('Y-m-d H:i:s');
-		$timeLimit = date('Y-m-d H:i:s', strtotime("+30 minutes", strtotime($waktuRequest)));
-        
+        $timeLimit = date('Y-m-d H:i:s', strtotime("+30 minutes", strtotime($waktuRequest)));
+
         if ($statusOtp == '0') {
             $req_lagi = DB::select('CALL misterkong_db_all_histori.get_request_otp_misterkong(?)', $array);
             $waktu = $req_lagi[0]->time_limit;
@@ -1076,51 +1070,51 @@ class AuthController extends Controller
             ], 201);
         }
         $from               = ""; //Sender ID or SMS Masking Name, if leave blank, it will use default from telco
-		$apikey             = "dd4cfd6168564ae033110fa7ec0e66fd-4a8acf79-b3da-4063-8368-b8c9d124eb48"; //get your API KEY from our sms dashboard
-		$postUrl            = "https://api.smsviro.com/restapi/sms/1/text/advanced"; # DO NOT CHANGE THIS
+        $apikey             = "dd4cfd6168564ae033110fa7ec0e66fd-4a8acf79-b3da-4063-8368-b8c9d124eb48"; //get your API KEY from our sms dashboard
+        $postUrl            = "https://api.smsviro.com/restapi/sms/1/text/advanced"; # DO NOT CHANGE THIS
 
-		$destination = array("to" => $no_hp);
-		$otp = rand(100000, 999999);
+        $destination = array("to" => $no_hp);
+        $otp = rand(100000, 999999);
 
-		$message = array(
-			"from" => $from,
-			"destinations" => $destination,
-			"text" => "<#> MisterKong Kode OTP anda adalah " . $otp . ", jangan pernah memberitahukan kode otp ini kepada siapapun"
-		);
+        $message = array(
+            "from" => $from,
+            "destinations" => $destination,
+            "text" => "<#> MisterKong Kode OTP anda adalah " . $otp . ", jangan pernah memberitahukan kode otp ini kepada siapapun"
+        );
 
         // print_r($message);
 
-		// update histori otp pos
-		$simpanHistory = DB::table("misterkong_db_all_histori.h_misterkong_otp")->insert([
-			"no_hp" => $no_hp,
-			"imei" => "-",
-			"otp" => $otp,
-			"request_at" => $waktuRequest,
-			"keterangan" => "-"
-		]);
+        // update histori otp pos
+        $simpanHistory = DB::table("misterkong_db_all_histori.h_misterkong_otp")->insert([
+            "no_hp" => $no_hp,
+            "imei" => "-",
+            "otp" => $otp,
+            "request_at" => $waktuRequest,
+            "keterangan" => "-"
+        ]);
 
-		$updateHistory = DB::table("misterkong_db_all_histori.h_log_misterkong_otp")->update([
-			"time_request" => $waktuRequest,
-			"time_limit" => $timeLimit
-		], "no_hp = '$no_hp' AND time_limit < '$waktuRequest'");
+        $updateHistory = DB::table("misterkong_db_all_histori.h_log_misterkong_otp")->update([
+            "time_request" => $waktuRequest,
+            "time_limit" => $timeLimit
+        ], "no_hp = '$no_hp' AND time_limit < '$waktuRequest'");
 
-		$postData           = array("messages" => array($message));
-		$postDataJson       = json_encode($postData);
-		$ch                 = curl_init();
+        $postData           = array("messages" => array($message));
+        $postDataJson       = json_encode($postData);
+        $ch                 = curl_init();
 
-		curl_setopt($ch, CURLOPT_URL, $postUrl);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', "Accept:application/json", 'Authorization: App ' . $apikey));
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-		curl_setopt($ch, CURLOPT_MAXREDIRS, 2);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $postDataJson);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		$response = curl_exec($ch);
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		$responseBody = json_decode($response);
-		curl_close($ch);
+        curl_setopt($ch, CURLOPT_URL, $postUrl);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', "Accept:application/json", 'Authorization: App ' . $apikey));
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 2);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postDataJson);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $responseBody = json_decode($response);
+        curl_close($ch);
         return response()->json([
             'success' => true,
             'respon'   => $responseBody,
@@ -1134,12 +1128,12 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'msg'   => 'Berhasil LogOut', 
-            
+            'msg'   => 'Berhasil LogOut',
+
         ], 200);
     }
-   public function notifOrder()
-   {
+    public function notifOrder()
+    {
         $data = json_decode(file_get_contents('php://input'), true);
         $potong  =  DB::table('m_potongan')->where('id', 2)->first();
         $data['potongan_rider'] = $potong->jenis == '1' ? $potong->nominal : ($potong->nominal / 100 * $data['ongkos']);
@@ -1147,31 +1141,31 @@ class AuthController extends Controller
 
         $destinasi = [
             'ios' => [
-              'to' => '/topics/ios_general',
-              'headers' => [
-                "authorization:key=AAAAFLVl2_0:APA91bG9ce3PpSlf4cRjbbRIglt-6JsK_IcwxpXXkwC2oingJDVFSxncZ8PY3bNbfR8aZsIiq51nzQACLdhMQm1c7rTJciH_owB6mVUSM3gsrNc-ft0BxIluO6oEBN5-M1-GwNZBbADC",
-                'Content-Type: application/json'
-              ]
+                'to' => '/topics/ios_general',
+                'headers' => [
+                    "authorization:key=AAAAFLVl2_0:APA91bG9ce3PpSlf4cRjbbRIglt-6JsK_IcwxpXXkwC2oingJDVFSxncZ8PY3bNbfR8aZsIiq51nzQACLdhMQm1c7rTJciH_owB6mVUSM3gsrNc-ft0BxIluO6oEBN5-M1-GwNZBbADC",
+                    'Content-Type: application/json'
+                ]
             ],
             'android' =>  [
-              'to' => '/topics/kongRiderFCM',
-              'headers' => [
-                'Authorization:key=AAAAJrZwZQg:APA91bEp4BYq1kZcVwUyuh02a_s5F3txxf_CJHNbvdwsdjs6qwdHuWIiS3BKN7ETR3gtQkVZgHebKCH4C6N-QaHeJTEC5m8pMT0MDD5i6oG2bqPwbPT3XR3dY9h_zku1TtamNt9_Tn9q',
-                'Content-Type: application/json'
-              ]
+                'to' => '/topics/kongRiderFCM',
+                'headers' => [
+                    'Authorization:key=AAAAJrZwZQg:APA91bEp4BYq1kZcVwUyuh02a_s5F3txxf_CJHNbvdwsdjs6qwdHuWIiS3BKN7ETR3gtQkVZgHebKCH4C6N-QaHeJTEC5m8pMT0MDD5i6oG2bqPwbPT3XR3dY9h_zku1TtamNt9_Tn9q',
+                    'Content-Type: application/json'
+                ]
             ],
-          ];
+        ];
 
-          foreach ($destinasi as $key => $value) {
+        foreach ($destinasi as $key => $value) {
             $payload = array(
-              'to' => $value['to'],
-              'priority' => 'high',
-              "mutable_content" => true,
-              'data' => $data,
+                'to' => $value['to'],
+                'priority' => 'high',
+                "mutable_content" => true,
+                'data' => $data,
             );
-      
+
             $headers = $value['headers'];
-      
+
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
             curl_setopt($ch, CURLOPT_POST, true);
@@ -1181,62 +1175,106 @@ class AuthController extends Controller
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
             $result = curl_exec($ch);
             curl_close($ch);
-          }
-   }
-   public function up_driver(Request $request)
-   {
+        }
+    }
+    public function up_driver(Request $request)
+    {
         $id_pesanan = $request->id_pesanan;
-        $driver = $request->id_driver; 
+        $driver = $request->id_driver;
         $resi = $request->resi;
-        $date = date('Y-m-d H:i:s');
+        $no_transaksi = $request->no_transaksi;
+        $nama_customer = $request->nama_cust;
+        $pin = $request->pin;
+        $potonganToko = DB::table('m_potongan')->select('nominal')->where('id', 3)->first();
+        $user_id = DB::table('t_penjualan')->select('user_id_toko')->where('id', $id_pesanan)->orWhere('no_transaksi', $id_pesanan)->first();
+        $company_id = DB::table('m_user_company')->select('company_id')->where('id', $user_id->user_id_toko)->first();
+        $misterkong = new MisterkongMp;
+        $res_up = $misterkong->up_driver($id_pesanan, $driver, $resi);
+        $pesanan = DB::table('t_penjualan_detail')
+            ->join('m_barang_satuan', 't_penjualan_detail.item_id', '=', 'm_barang_satuan.id')
+            ->join('m_barang', 'm_barang_satuan.barang_id', '=', 'm_barang.id')
+            ->join('m_satuan', 'm_barang_satuan.satuan_id', '=', 'm_satuan.id')
+            ->where('t_penjualan_detail.no_transaksi', $no_transaksi)->select(
+                'm_barang.kd_barang',
+                'm_satuan.kd_satuan',
+                't_penjualan_detail.qty',
+                't_penjualan_detail.harga_jual',
+                't_penjualan_detail.diskon',
+                't_penjualan_detail.keterangan'
+            )->get();
+
+        $detailOrder = [];
+        $keteranganPesanan = '[';
+        $catatanPesanan = '{';
+
+        foreach ($pesanan as $key => $value) {
+            $keteranganPesanan .= "{'" . $value['kd_barang'] . "':'" . $value['keterangan'] . "'}" . ($key == count($pesanan) - 1 ? '' : ',');
+            $catatanPesanan .= $value["kd_barang"] . ':' . $value["keterangan"] . ',';
+            $detailOrder[] = [
+                "no_order" => $no_transaksi,
+                "kd_barang" => $value["kd_barang"],
+                "kd_satuan" => $value['kd_satuan'],
+                "kd_pegawai" => "PAA000",
+                "jenis" => 1,
+                "qty" => $value['qty'],
+                "harga_jual" => $value['harga_jual'],
+                "diskon1" => $value['diskon'],
+                "diskon2" => 0,
+                "diskon3" => 0,
+                "diskon4" => 0,
+                "keterangan" => $value['keterangan'],
+                "date_add" => date('Y-m-d H:i:s'),
+                "user_add" => "UAA000"
+            ];
+        }
+        $keteranganPesanan .= ']';
+        $catatanPesanan .= '}';
+        $rider = DB::table('m_driver')->select('nama_depan', 'hp1')->where('kd_driver', $driver)->first();
+        $dataOrder = [
+			"no_order" => $no_transaksi,
+			"kd_customer" => "-1",
+			"kd_divisi" => "DAA000",
+			"kd_jenis" => "JAA000",
+			"kd_kas" => "KAA000",
+			"kd_voucher" => "VAA000",
+			"no_bukti" => "-",
+			"tanggal" => date('Y-m-d H:i:s'),
+			"tanggal_terima" => date('Y-m-d H:i:s'),
+			"status" => 0,
+			"diskon1" => 0.0,
+			"diskon2" => 0.0,
+			"diskon3" => "0.0",
+			"diskon4" => 0.0,
+			"diskon_uang" => $potonganToko->nominal,
+			"pajak" => 0.0,
+			"keterangan" => $rider->nama_depan . "__" . $nama_customer . "__" . $pin . "__" . $id_pesanan . "__" . $rider->hp1 . "__" . $driver . "__" . $catatanPesanan,
+			"jaminan" => 0.0,
+			"kd_user" => "UAA000",
+			"tanggal_server" => date('Y-m-d H:i:s'),
+			"no_transaksi" => "-",
+			"date_add" => date('Y-m-d H:i:s'),
+			"user_add" => "UAA000",
+		];
+
         try {
             DB::beginTransaction();
-            DB::table('t_penjualan')->where('id', $id_pesanan)->update(['status_barang' => 4]);
-            DB::table('t_pengiriman')->where('no_penjualan', $id_pesanan)->update(['id_driver' => $driver, 'no_resi' => $resi]);
-            DB::table('t_pengiriman_status')->insert(['no_resi' => $resi, 'status' => 0, 'keterangan' => 'pesananmu sudah di terima nih, tunggu drivernya sampai ya']);
-            $user = DB::table('t_penjualan')->select('user_id_pembeli')->where('id', $id_pesanan)->first();
-            DB::table('t_chat_driver')->insert(['no_transaksi' => $resi, 'send_driver' => $driver, 'send_user' => $user->user_id_pembeli, 'read_driver' => 1, 'up_time' => $date]);
-            DB::table('t_chat_driver_detail')->insert(['message_id' => $resi, 'message' => 'Hai! Pesananmu sudah diterima driver, driver akan segera meluncur ke restoran ya', 'sender' => 'driver', 'time_send' => $date, 'time_receive' => null, 'time_sent' => null, 'time_read' => $date, 'url' => null, 'status_delete_to' => 0, 'status_delete_by' => 0]);
+            DB::table('misterkong_'.$company_id->company_id.'.t_penjualan_order')->insert($dataOrder);
+            DB::table('misterkong_'.$company_id->company_id.'.t_penjualan_order_detail')->insert($detailOrder);
             DB::commit();
-            $payload = array(
-				'to' => '/topics/general',
-				'priority' => 'high',
-				"mutable_content" => true,
-				'data' => array(
-					"id_driver" => $driver,
-					"id_cust" => $user->user_id_pembeli,
-					"msg" => 'Hai! Pesananmu sudah diterima driver, driver akan segera meluncur ke restoran ya'
-				)
-			);
-			$headers = array(
-				'Authorization:key=AAAAJrZwZQg:APA91bEp4BYq1kZcVwUyuh02a_s5F3txxf_CJHNbvdwsdjs6qwdHuWIiS3BKN7ETR3gtQkVZgHebKCH4C6N-QaHeJTEC5m8pMT0MDD5i6oG2bqPwbPT3XR3dY9h_zku1TtamNt9_Tn9q', 'Content-Type: application/json',
-			);
-
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-			$result = curl_exec($ch);
-			curl_close($ch);
             return response([
-                'message' => 'Berhasil mengirim Notif',
+                'message' => 'Pesanan Berhasil',
                 'status' => 'Success'
             ], 400);
         } catch (\Exception $exp) {
-            DB::rollBack(); 
+            DB::rollBack();
             return response([
                 'message' => $exp->getMessage(),
                 'status' => 'failed'
             ], 400);
         }
-        
-   }
-
-   public function pembatalan(Request $request)
-   {
+    }
+    public function pembatalan(Request $request)
+    {
         $id_penjualan = $request->no_penjualan;
         $id_driver = $request->id_rider;
         $tanggal = date('Y-m-d H:i:s');
@@ -1248,11 +1286,11 @@ class AuthController extends Controller
                 'status' => 'Success'
             ], 400);
         } catch (\Exception $exp) {
-            DB::rollBack(); 
+            DB::rollBack();
             return response([
                 'message' => $exp->getMessage(),
                 'status' => 'failed'
             ], 400);
         }
-   }
+    }
 }
