@@ -1181,7 +1181,6 @@ class AuthController extends Controller
     {
         $id_pesanan = $request->id_pesanan;
         $driver = $request->id_driver;
-        $resi = $request->resi;
         $no_transaksi = $request->no_transaksi;
         $nama_customer = $request->nama_cust;
         $pin = $request->pin;
@@ -1189,7 +1188,7 @@ class AuthController extends Controller
         $user_id = DB::table('t_penjualan')->select('user_id_toko')->where('id', $id_pesanan)->orWhere('no_transaksi', $id_pesanan)->first();
         $company_id = DB::table('m_user_company')->select('company_id')->where('id', $user_id->user_id_toko)->first();
         $misterkong = new MisterkongMp;
-        $res_up = $misterkong->up_driver($id_pesanan, $driver, $resi);
+        $res_up = $misterkong->up_driver($id_pesanan, $driver, $no_transaksi);
         $pesanan = DB::table('t_penjualan_detail')
             ->join('m_barang_satuan', 't_penjualan_detail.item_id', '=', 'm_barang_satuan.id')
             ->join('m_barang', 'm_barang_satuan.barang_id', '=', 'm_barang.id')
