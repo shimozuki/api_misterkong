@@ -1327,6 +1327,18 @@ class AuthController extends Controller
             ], 400);
         }
     }
+    public function image_up(Request $request){
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = 'https://misterkong.com/kajek/images/phD/' . $filename;
+            $image->move(public_path('https://misterkong.com/kajek/images/phD/'), $filename);
+
+            return response()->json(['message' => 'Image uploaded successfully', 'filename' => $filename]);
+        } else {
+            return response()->json(['message' => 'No image uploaded']);
+        }
+    }
     public function pembatalan(Request $request)
     {
         $id_penjualan = $request->no_penjualan;
