@@ -1334,9 +1334,9 @@ class AuthController extends Controller
             $path = 'https://misterkong.com/kajek/images/phD/' . $filename;
             $image->move(public_path('https://misterkong.com/kajek/images/phD/'), $filename);
 
-            return response()->json(['message' => 'Image uploaded successfully', 'filename' => $filename, 'path' => $path]);
+            return response()->json(['message' => 'successfully', 'filename' => $filename, 'path' => $path]);
         } else {
-            return response()->json(['message' => 'No image uploaded']);
+            return response()->json(['message' => 'gagal']);
         }
     }
     public function pembatalan(Request $request)
