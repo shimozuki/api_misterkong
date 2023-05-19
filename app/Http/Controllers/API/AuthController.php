@@ -10,6 +10,7 @@ use App\Models\Misterkong;
 use App\Models\MisterkongMp;
 use DateTime;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 
 class AuthController extends Controller
@@ -1390,18 +1391,31 @@ class AuthController extends Controller
             ], 400);
         }
     }
-    public function imageUpload(Request $request) {
+    public function image_up(Request $request) {
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $path = 'https://misterkong.com/kajek/images/phD/' . $filename;
-            $image->move(public_path('kajek/images/phD/'), $filename);
     
-            return response()->json(['message' => 'success', 'filename' => $filename, 'path' => $path]);
+            $response = Http::attach(
+                'image',
+                file_get_contents($image->getPathname()),
+                $filename
+            )->post('http://misterkong.com/kong_api/misterkong/api/upload_image', [
+                'path' => $path
+            ]);
+    
+            if ($response->successful()) {
+                return response()->json(['message' => 'success', 'path' => $path]);
+            } else {
+                return response()->json(['message' => 'failed']);
+            }
         } else {
             return response()->json(['message' => 'failed']);
         }
     }
+    
+    
     public function pembatalan(Request $request)
     {
         $id_penjualan = $request->no_penjualan;
