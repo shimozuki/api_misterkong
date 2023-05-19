@@ -1337,7 +1337,7 @@ class AuthController extends Controller
                     'isi' => 'hahahah',
                     'noHp' => $rider->hp1,
                     'keterangan' => $keteranganPesanan,
-                    'potongan_toko' => $potonganToko
+                    'potongan_toko' => $potonganToko->nominal,
                 );
                 $destinasi = [
                     'ios' => [
@@ -1390,16 +1390,16 @@ class AuthController extends Controller
             ], 400);
         }
     }
-    public function image_up(Request $request){
+    public function imageUpload(Request $request) {
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $path = 'https://misterkong.com/kajek/images/phD/' . $filename;
-            $image->move(public_path('https://misterkong.com/kajek/images/phD/'), $filename);
-
-            return response()->json(['message' => 'successfully', 'filename' => $filename, 'path' => $path]);
+            $image->move(public_path('kajek/images/phD/'), $filename);
+    
+            return response()->json(['message' => 'success', 'filename' => $filename, 'path' => $path]);
         } else {
-            return response()->json(['message' => 'gagal']);
+            return response()->json(['message' => 'failed']);
         }
     }
     public function pembatalan(Request $request)
