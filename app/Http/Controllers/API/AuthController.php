@@ -1391,29 +1391,33 @@ class AuthController extends Controller
             ], 400);
         }
     }
-    public function image_up(Request $request) {
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $filename = time() . '.' . $image->getClientOriginalExtension();
-            $path = 'https://misterkong.com/kajek/images/phD/' . $filename;
-    
-            $response = Http::attach(
-                'image',
-                file_get_contents($image->getPathname()),
-                $filename
-            )->post('http://misterkong.com/kong_api/misterkong/api/upload_image', [
-                'path' => $path
-            ]);
-    
-            if ($response->successful()) {
-                return response()->json(['message' => 'success', 'path' => $path]);
-            } else {
-                return response()->json(['message' => 'failed']);
-            }
-        } else {
+   public function image_up(Request $request)
+{
+    if ($request->hasFile('image')) {
+        $image = $request->file('image');
+        $filename = time() . '.' . $image->getClientOriginalExtension();
+        $targetUrl = 'https://misterkong.com/kajek/images/phD/' . $filename;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $targetUrl);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'image' => new \CURLFile($image->getPathname(), $image->getClientMimeType(), $filename)
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        if ($response === false) {
             return response()->json(['message' => 'failed']);
         }
+
+        return response()->json(['message' => 'success', 'path' => $targetUrl]);
+    } else {
+        return response()->json(['message' => 'failed']);
     }
+}
+
     
     
     public function pembatalan(Request $request)
