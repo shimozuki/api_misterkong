@@ -1379,7 +1379,7 @@ class AuthController extends Controller
                 }
                 return response([
                     'message' => 'Pesanan Berhasil',
-                    'status' => 'Success'
+                    'status' => 'Success',
                 ], 200);
             }
           
