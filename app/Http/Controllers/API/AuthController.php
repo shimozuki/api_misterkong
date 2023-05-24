@@ -1396,7 +1396,7 @@ class AuthController extends Controller
     if ($request->hasFile('image')) {
         $image = $request->file('image');
         $filename = time() . '.' . $image->getClientOriginalExtension();
-        $targetUrl = 'https://misterkong.com/kajek/images/phD/' . $filename;
+        $targetUrl = 'public_html/misterkong/kajek/images/phD/' . $filename;
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $targetUrl);
