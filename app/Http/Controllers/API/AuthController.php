@@ -1232,37 +1232,37 @@ class AuthController extends Controller
         $catatanPesanan .= '}';
         $rider = DB::table('m_driver')->select('nama_depan', 'hp1')->where('kd_driver', $driver)->first();
         $dataOrder = [
-			"no_order" => $no_transaksi,
-			"kd_customer" => "-1",
-			"kd_divisi" => "DAA000",
-			"kd_jenis" => "JAA000",
-			"kd_kas" => "KAA000",
-			"kd_voucher" => "VAA000",
-			"no_bukti" => "-",
-			"tanggal" => date('Y-m-d H:i:s'),
-			"tanggal_terima" => date('Y-m-d H:i:s'),
-			"status" => 0,
-			"diskon1" => 0.0,
-			"diskon2" => 0.0,
-			"diskon3" => "0.0",
-			"diskon4" => 0.0,
-			"diskon_uang" => $potonganToko->nominal,
-			"pajak" => 0.0,
-			"keterangan" => $rider->nama_depan . "__" . $nama_customer . "__" . $pin . "__" . $id_pesanan . "__" . $rider->hp1 . "__" . $driver . "__" . $catatanPesanan,
-			"jaminan" => 0.0,
-			"kd_user" => "UAA000",
-			"tanggal_server" => date('Y-m-d H:i:s'),
-			"no_transaksi" => "-",
-			"date_add" => date('Y-m-d H:i:s'),
-			"user_add" => "UAA000",
-		];
+            "no_order" => $no_transaksi,
+            "kd_customer" => "-1",
+            "kd_divisi" => "DAA000",
+            "kd_jenis" => "JAA000",
+            "kd_kas" => "KAA000",
+            "kd_voucher" => "VAA000",
+            "no_bukti" => "-",
+            "tanggal" => date('Y-m-d H:i:s'),
+            "tanggal_terima" => date('Y-m-d H:i:s'),
+            "status" => 0,
+            "diskon1" => 0.0,
+            "diskon2" => 0.0,
+            "diskon3" => "0.0",
+            "diskon4" => 0.0,
+            "diskon_uang" => $potonganToko->nominal,
+            "pajak" => 0.0,
+            "keterangan" => $rider->nama_depan . "__" . $nama_customer . "__" . $pin . "__" . $id_pesanan . "__" . $rider->hp1 . "__" . $driver . "__" . $catatanPesanan,
+            "jaminan" => 0.0,
+            "kd_user" => "UAA000",
+            "tanggal_server" => date('Y-m-d H:i:s'),
+            "no_transaksi" => "-",
+            "date_add" => date('Y-m-d H:i:s'),
+            "user_add" => "UAA000",
+        ];
 
         try {
             DB::beginTransaction();
             if (empty($riderR)) {
-                DB::table('misterkong_'.$company_id->company_id.'.t_penjualan_order')->insert($dataOrder);
-                DB::table('misterkong_'.$company_id->company_id.'.t_penjualan_order_detail')->insert($detailOrder);
-                $updateSaldo = $this->http_request("https://misterkong.com/back_end_mp/api_misterkong/saldo/UpdateSaldo.php?no_transaksi=" .$no_transaksi. "&status=4");
+                DB::table('misterkong_' . $company_id->company_id . '.t_penjualan_order')->insert($dataOrder);
+                DB::table('misterkong_' . $company_id->company_id . '.t_penjualan_order_detail')->insert($detailOrder);
+                $updateSaldo = $this->http_request("https://misterkong.com/back_end_mp/api_misterkong/saldo/UpdateSaldo.php?no_transaksi=" . $no_transaksi . "&status=4");
                 DB::commit();
                 $data = array(
                     "title" => "KONGMeal Order",
@@ -1297,7 +1297,7 @@ class AuthController extends Controller
                         ]
                     ],
                 ];
-        
+
                 $msg = [];
                 foreach ($destinasi as $key => $value) {
                     $payload = array(
@@ -1306,7 +1306,7 @@ class AuthController extends Controller
                         "mutable_content" => true,
                         'data' => $data
                     );
-        
+
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
                     curl_setopt($ch, CURLOPT_POST, true);
@@ -1322,7 +1322,7 @@ class AuthController extends Controller
                     'message' => 'Pesanan Berhasil',
                     'status' => 'Success'
                 ], 400);
-            }else {
+            } else {
                 $data = array(
                     "title" => "KONGMeal Order",
                     "body" => $nama_customer . ' | ' . $no_transaksi,
@@ -1356,7 +1356,7 @@ class AuthController extends Controller
                         ]
                     ],
                 ];
-        
+
                 $msg = [];
                 foreach ($destinasi as $key => $value) {
                     $payload = array(
@@ -1365,7 +1365,7 @@ class AuthController extends Controller
                         "mutable_content" => true,
                         'data' => $data
                     );
-        
+
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
                     curl_setopt($ch, CURLOPT_POST, true);
@@ -1382,7 +1382,6 @@ class AuthController extends Controller
                     'status' => 'Success',
                 ], 200);
             }
-          
         } catch (\Exception $exp) {
             DB::rollBack();
             return response([
@@ -1391,35 +1390,24 @@ class AuthController extends Controller
             ], 400);
         }
     }
-   public function image_up(Request $request)
-{
-    if ($request->hasFile('image')) {
-        $image = $request->file('image');
-        $filename = time() . '.' . $image->getClientOriginalExtension();
-        $targetUrl = 'public_html/misterkong/kajek/images/phD/' . $filename;
+    public function image_up(Request $request)
+    {
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $targetPath = 'public_html/misterkong/kajek/images/phD/' . $filename;
+            $image->storeAs($targetPath, $filename); 
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $targetUrl);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, [
-            'image' => new \CURLFile($image->getPathname(), $image->getClientMimeType(), $filename)
-        ]);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
-        curl_close($ch);
+            $targetUrl = asset($targetPath . $filename);
 
-        if ($response === false) {
+            return response()->json(['message' => 'success', 'path' => $targetUrl]);
+        } else {
             return response()->json(['message' => 'failed']);
         }
-
-        return response()->json(['message' => 'success', 'path' => $targetUrl]);
-    } else {
-        return response()->json(['message' => 'failed']);
     }
-}
 
-    
-    
+
+
     public function pembatalan(Request $request)
     {
         $id_penjualan = $request->no_penjualan;
