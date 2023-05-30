@@ -1394,11 +1394,14 @@ class AuthController extends Controller
     {
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $filename = $image->getClientOriginalName();
+            // $filename = time() . '.' . $image->getClientOriginalExtension();
             $targetPath = 'public_html/misterkong/kajek/images/phD/' . $filename;
-            $image->storeAs($targetPath, $filename); 
+            // $image->storeAs($targetPath, $filename); 
 
-            $targetUrl = asset($targetPath . $filename);
+            $image->move("../../kajek/images/phD/",$filename);
+
+            $targetUrl = asset($targetPath);
 
             return response()->json(['message' => 'success', 'path' => $targetUrl]);
         } else {
