@@ -1396,12 +1396,12 @@ class AuthController extends Controller
             $image = $request->file('image');
             $filename = $image->getClientOriginalName();
             // $filename = time() . '.' . $image->getClientOriginalExtension();
-            $targetPath = 'public_html/misterkong/kajek/images/phD/' . $filename;
+            $targetPath = 'https://misterkong.com/kajek/images/phD/' . $filename;
             // $image->storeAs($targetPath, $filename); 
 
-            $image->move("../../kajek/images/phD/", $filename);
+            $image->move("../../kajek/images/phD/",$filename);
 
-            $targetUrl = asset($targetPath);
+            $targetUrl = $targetPath;
 
             return response()->json(['message' => 'success', 'path' => $targetUrl]);
         } else {
@@ -1416,7 +1416,7 @@ class AuthController extends Controller
             $image = $request->file('image');
             $filename = $image->getClientOriginalName();
             // $filename = time() . '.' . $image->getClientOriginalExtension();
-            $targetPath = 'public_html/misterkong/kajek/images/phD/' . $filename;
+            $targetPath = 'https://misterkong.com/kajek/images/phD/' . $filename;
             // $image->storeAs($targetPath, $filename); 
 
             $image->move("../../kajek/images/".$path, $filename);
