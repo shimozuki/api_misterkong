@@ -57,5 +57,6 @@ Route::post('/kirim_notif', [AuthController::class, 'notifOrder']);
 Route::post('/up_driver', [AuthController::class, 'up_driver']);
 Route::post('/pembatalan', [AuthController::class, 'pembatalan']);
 Route::post('/upload_image', [AuthController::class, 'image_up']);
+Route::post('/upload_rider', [AuthController::class, 'image_rider']);
 
 

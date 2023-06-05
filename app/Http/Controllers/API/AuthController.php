@@ -1399,7 +1399,7 @@ class AuthController extends Controller
             $targetPath = 'public_html/misterkong/kajek/images/phD/' . $filename;
             // $image->storeAs($targetPath, $filename); 
 
-            $image->move("../../kajek/images/phD/",$filename);
+            $image->move("../../kajek/images/phD/", $filename);
 
             $targetUrl = asset($targetPath);
 
@@ -1409,7 +1409,25 @@ class AuthController extends Controller
         }
     }
 
+    public function image_rider(Request $request)
+    {
+        $path = $request->path;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $filename = $image->getClientOriginalName();
+            // $filename = time() . '.' . $image->getClientOriginalExtension();
+            $targetPath = 'public_html/misterkong/kajek/images/phD/' . $filename;
+            // $image->storeAs($targetPath, $filename); 
 
+            $image->move("../../kajek/images/".$path, $filename);
+
+            $targetUrl = asset($targetPath);
+
+            return response()->json(['message' => 'success', 'path' => $targetUrl]);
+        } else {
+            return response()->json(['message' => 'failed']);
+        }
+    }
 
     public function pembatalan(Request $request)
     {
