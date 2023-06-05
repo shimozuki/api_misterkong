@@ -1401,7 +1401,7 @@ class AuthController extends Controller
 
             $image->move("../../kajek/images/phD/",$filename);
 
-            $targetUrl = $targetPath;
+            $targetUrl = asset($targetPath);
 
             return response()->json(['message' => 'success', 'path' => $targetUrl]);
         } else {
