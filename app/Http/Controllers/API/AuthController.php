@@ -1416,7 +1416,7 @@ class AuthController extends Controller
             $image = $request->file('image');
             $filename = $image->getClientOriginalName();
             // $filename = time() . '.' . $image->getClientOriginalExtension();
-            $targetPath = 'https://misterkong.com/kajek/images/phD/' . $filename;
+            $targetPath = 'https://misterkong.com/kajek/images/'.$path.'/'. $filename;
             // $image->storeAs($targetPath, $filename); 
 
             $image->move("../../kajek/images/".$path, $filename);
