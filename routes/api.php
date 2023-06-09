@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\RiderController;
 use App\Http\Controllers\API\FormController;
 use App\Http\Controllers\API\ScoreController;
 use Illuminate\Support\Facades\Auth;
@@ -58,5 +59,6 @@ Route::post('/up_driver', [AuthController::class, 'up_driver']);
 Route::post('/pembatalan', [AuthController::class, 'pembatalan']);
 Route::post('/upload_image', [AuthController::class, 'image_up']);
 Route::post('/upload_rider', [AuthController::class, 'image_rider']);
+Route::post('/transaction', [RiderController::class, 'get_transaction_for_driver']);
 
 
