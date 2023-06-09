@@ -12,7 +12,7 @@ class RiderController extends Controller
     {
         $resi = $request->resi;
         $query = DB::table('t_penjualan_detail')->join('m_barang_satuan', 't_penjualan_detail.item_id', '=', 'm_barang_satuan.barang_id')
-        ->join('m_barang', 'm_barang.id', '=', 'm_barang_satuan.barang_id')->where('t_penjualan_detail.no_transaksi', $resi)->select('m_barang.nama','t_penjualan_detail.qty','t_penjualan_detail.harga_jual', '')->get();
+        ->join('m_barang', 'm_barang.id', '=', 'm_barang_satuan.barang_id')->where('t_penjualan_detail.no_transaksi', $resi)->select('m_barang.nama','t_penjualan_detail.qty','t_penjualan_detail.harga_jual')->get();
 
         if (!empty($query)) {
             return response()->json([
