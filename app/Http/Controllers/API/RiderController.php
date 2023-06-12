@@ -11,7 +11,7 @@ class RiderController extends Controller
     public function get_transaction_for_driver(Request $request)
     {
         $resi = $request->resi;
-        $query = DB::table('t_penjualan_detail')->join('m_barang_satuan', 't_penjualan_detail.item_id', '=', 'm_barang_satuan.barang_id')
+        $query = DB::table('t_penjualan_detail')->join('m_barang_satuan', 't_penjualan_detail.item_id', '=', 'm_barang_satuan.id')
         ->join('m_barang', 'm_barang.id', '=', 'm_barang_satuan.barang_id')->where('t_penjualan_detail.no_transaksi', $resi)->select('m_barang.nama','t_penjualan_detail.qty','t_penjualan_detail.harga_jual')->get();
 
         if (!empty($query)) {
