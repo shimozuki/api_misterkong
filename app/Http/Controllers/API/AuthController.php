@@ -1191,17 +1191,21 @@ class AuthController extends Controller
         $company_id = DB::table('m_user_company')->select('company_id')->where('id', $user_id->user_id_toko)->first();
         $misterkong = new MisterkongMp;
         $res_up = $misterkong->up_driver($id_pesanan, $driver, $no_transaksi);
+      
         $pesanan = DB::table('t_penjualan_detail')
             ->join('m_barang_satuan', 't_penjualan_detail.item_id', '=', 'm_barang_satuan.id')
             ->join('m_barang', 'm_barang_satuan.barang_id', '=', 'm_barang.id')
             ->join('m_satuan', 'm_barang_satuan.satuan_id', '=', 'm_satuan.id')
+            ->leftJoin('m_barang_satuan_varian', 'm_barang_satuan.id', '=', 'm_barang_satuan_varian.barang_satuan_id')
+            ->leftJoin('m_varian', 'm_barang_satuan_varian.varian_id', '=', 'm_varian.id')
             ->where('t_penjualan_detail.no_transaksi', $no_transaksi)->select(
                 'm_barang.kd_barang',
                 'm_satuan.kd_satuan',
                 't_penjualan_detail.qty',
                 't_penjualan_detail.harga_jual',
                 't_penjualan_detail.diskon',
-                't_penjualan_detail.keterangan'
+                't_penjualan_detail.keterangan',
+                'm_varian.nama_varian AS varian'
             )->get();
 
         $detailOrder = [];
@@ -1209,21 +1213,21 @@ class AuthController extends Controller
         $catatanPesanan = '{';
 
         foreach ($pesanan as $key => $value) {
-            $keteranganPesanan .= "{'" . $value['kd_barang'] . "':'" . $value['keterangan'] . "'}" . ($key == count($pesanan) - 1 ? '' : ',');
-            $catatanPesanan .= $value["kd_barang"] . ':' . $value["keterangan"] . ',';
+            $keteranganPesanan .= "{'" . $value->kd_barang . "':'" . $value->keterangan . "'}" . ($key == count($pesanan) - 1 ? '' : ',');
+            $catatanPesanan .= $value->kd_barang . ':' . $value->keterangan . ',';
             $detailOrder[] = [
                 "no_order" => $no_transaksi,
-                "kd_barang" => $value["kd_barang"],
-                "kd_satuan" => $value['kd_satuan'],
+                "kd_barang" => $value->kd_barang,
+                "kd_satuan" => $value->kd_satuan,
                 "kd_pegawai" => "PAA000",
                 "jenis" => 1,
-                "qty" => $value['qty'],
-                "harga_jual" => $value['harga_jual'],
-                "diskon1" => $value['diskon'],
+                "qty" => $value->qty,
+                "harga_jual" => $value->harga_jual,
+                "diskon1" => $value->diskon,
                 "diskon2" => 0,
                 "diskon3" => 0,
                 "diskon4" => 0,
-                "keterangan" => $value['keterangan'],
+                "keterangan" => $value->keterangan,
                 "date_add" => date('Y-m-d H:i:s'),
                 "user_add" => "UAA000"
             ];
@@ -1380,6 +1384,7 @@ class AuthController extends Controller
                 return response([
                     'message' => 'Pesanan Berhasil',
                     'status' => 'Success',
+                    'data' => $payload
                 ], 200);
             }
         } catch (\Exception $exp) {
