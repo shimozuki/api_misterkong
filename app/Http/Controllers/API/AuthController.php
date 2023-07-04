@@ -357,7 +357,6 @@ class AuthController extends Controller
                     ) AS varian
                     ON a.id = varian.barang_satuan_id
                 WHERE a.company_id=" . $id . " AND a.id = " . $id_barang_satuan . " order by stok desc limit 30";
-
                 $raw = DB::select(DB::raw($query_cek));
                 foreach ($raw as $key => $value) {
                     $status_varian = $value->status_varian;
