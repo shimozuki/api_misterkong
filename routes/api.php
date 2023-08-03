@@ -60,5 +60,8 @@ Route::post('/pembatalan', [AuthController::class, 'pembatalan']);
 Route::post('/upload_image', [AuthController::class, 'image_up']);
 Route::post('/upload_rider', [AuthController::class, 'image_rider']);
 Route::post('/transaction', [RiderController::class, 'get_transaction_for_driver']);
+Route::get('/_getBank', [RiderController::class, 'getimage']);
+Route::post('/_getPict', [RiderController::class, 'getpict']);
+
 
 
