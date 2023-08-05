@@ -59,6 +59,8 @@ class RiderController extends Controller
         UNION
         SELECT 'ktp/' as pt, CONCAT(".$iddr.", 'ktp.jpg') as nm
         UNION
+        SELECT 'ktp/' as pt, CONCAT(".$iddr.", 'diridenganktp.jpg') as nm
+        UNION
         SELECT 'sim/' as pt, CONCAT(".$iddr.", 'simA.jpg') as nm
         UNION
         SELECT 'sim/' as pt, CONCAT(".$iddr.", 'simB1.jpg') as nm
